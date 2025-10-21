@@ -1,0 +1,11 @@
+# أوامر ربط GitHub (استبدل YOUR-USERNAME باسم المستخدم الخاص بك)
+# GitHub connection commands (replace YOUR-USERNAME with your username)
+
+git remote add origin https://github.com/YOUR-USERNAME/antitheft-multilingual.git
+git branch -M main
+git push -u origin main
+
+# مثال:
+# git remote add origin https://github.com/ahmed123/antitheft-multilingual.git
+# git branch -M main  
+# git push -u origin main
