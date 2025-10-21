@@ -28,23 +28,30 @@ app.use(express.static('.'));
 
 // معالجة الطلبات مع دعم اللغات
 app.get('/', (req, res) => {
-    const lang = req.query.lang || 'ar';
-    
-    // التحقق من اللغة المدعومة
-    const supportedLanguages = ['ar', 'en'];
-    const selectedLang = supportedLanguages.includes(lang) ? lang : 'ar';
-    
-    // قراءة ملف HTML وتعديل اللغة الافتراضية
-    const fs = require('fs');
-    let html = fs.readFileSync('./index.html', 'utf8');
-    
-    // تحديث اللغة واتجاه النص في HTML
-    if (selectedLang === 'en') {
-        html = html.replace('lang="ar" dir="rtl"', 'lang="en" dir="ltr"');
-    }
-    
-    // إضافة script لتعيين اللغة الافتراضية
-    const langScript = `
+    try {
+        const lang = req.query.lang || 'ar';
+        
+        // التحقق من اللغة المدعومة
+        const supportedLanguages = ['ar', 'en'];
+        const selectedLang = supportedLanguages.includes(lang) ? lang : 'ar';
+        
+        // قراءة ملف HTML وتعديل اللغة الافتراضية
+        const fs = require('fs');
+        const htmlPath = path.join(__dirname, 'index.html');
+        
+        if (!fs.existsSync(htmlPath)) {
+            return res.status(404).send('HTML file not found');
+        }
+        
+        let html = fs.readFileSync(htmlPath, 'utf8');
+        
+        // تحديث اللغة واتجاه النص في HTML
+        if (selectedLang === 'en') {
+            html = html.replace('lang="ar" dir="rtl"', 'lang="en" dir="ltr"');
+        }
+        
+        // إضافة script لتعيين اللغة الافتراضية
+        const langScript = `
     <script>
         // تعيين اللغة من URL
         window.initialLanguage = '${selectedLang}';
@@ -52,10 +59,14 @@ app.get('/', (req, res) => {
             localStorage.setItem('selectedLanguage', '${selectedLang}');
         }
     </script>`;
-    
-    html = html.replace('</head>', langScript + '</head>');
-    
-    res.send(html);
+        
+        html = html.replace('</head>', langScript + '</head>');
+        
+        res.send(html);
+    } catch (error) {
+        console.error('Error serving HTML:', error);
+        res.status(500).send('Server Error: ' + error.message);
+    }
 });
 
 // API endpoints للتكامل مع الباك إند

@@ -1,0 +1,45 @@
+# أوامر Git جاهزة للنسخ
+# Ready Git Commands
+
+# استبدل YOUR-USERNAME باسم المستخدم الخاص بك على GitHub
+# Replace YOUR-USERNAME with your GitHub username
+
+git remote add origin https://github.com/YOUR-USERNAME/antitheft-multilingual-frontend.git
+git branch -M main
+git push -u origin main
+
+# ═══════════════════════════════════════════════════════════════
+
+# أمثلة:
+# Examples:
+
+# إذا كان اسم المستخدم: ahmed123
+git remote add origin https://github.com/ahmed123/antitheft-multilingual-frontend.git
+git branch -M main
+git push -u origin main
+
+# إذا كان اسم المستخدم: sara_dev
+git remote add origin https://github.com/sara_dev/antitheft-multilingual-frontend.git
+git branch -M main
+git push -u origin main
+
+# إذا كان اسم المستخدم: mohammed2024
+git remote add origin https://github.com/mohammed2024/antitheft-multilingual-frontend.git
+git branch -M main
+git push -u origin main
+
+# ═══════════════════════════════════════════════════════════════
+
+# خطوات سريعة:
+# Quick Steps:
+
+# 1. إنشاء مستودع على GitHub:
+#    https://github.com/new
+#    اسم المستودع: antitheft-multilingual-frontend
+
+# 2. نسخ الأوامر أعلاه (مع استبدال YOUR-USERNAME)
+
+# 3. تشغيل الأوامر في Terminal/CMD
+
+# 4. النشر على Railway:
+#    https://railway.app → New Project → Deploy from GitHub repo
