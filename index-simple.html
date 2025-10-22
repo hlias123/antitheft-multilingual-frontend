@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">نظام مكافحة السرقة</title>
+    <style>
+        /* إعدادات عامة */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        /* دعم اللغة العربية */
+        [dir="rtl"] {
+            text-align: right;
+        }
+
+        [dir="ltr"] {
+            text-align: left;
+        }
+
+        /* الحاوي الرئيسي */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* شريط التنقل */
+        .navbar {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+            border-radius: 15px;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .nav-logo h1 {
+            color: white;
+            font-size: 1.8rem;
+        }
+
+        /* زر تغيير اللغة */
+        .language-switcher {
+            position: relative;
+        }
+
+        .lang-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.7rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .lang-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .flag {
+            font-size: 1.3rem;
+        }
+
+        /* المحتوى الرئيسي */
+        .hero {
+            text-align: center;
+            color: white;
+            padding: 3rem 0;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .cta-button {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 1.2rem 3rem;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .cta-button:hover {
+            background: #ff5252;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(255, 107, 107, 0.4);
+        }
+
+        /* قسم المميزات */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 4rem;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-radius: 20px;
+            text-align: center;
+            color: white;
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card p {
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        /* تصميم متجاوب */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .nav-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .features {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* تحسينات للغة العربية */
+        [dir="rtl"] .nav-container {
+            flex-direction: row-reverse;
+        }
+
+        /* إشعارات */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 10000;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+        }
+
+        [dir="rtl"] .notification {
+            right: auto;
+            left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- شريط التنقل -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <h1 id="site-name">نظام مكافحة السرقة</h1>
+            </div>
+            
+            <!-- زر تغيير اللغة -->
+            <div class="language-switcher">
+                <button class="lang-btn" onclick="toggleLanguage()">
+                    <span class="flag" id="current-flag">🇸🇦</span>
+                    <span id="current-lang">العربية</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- المحتوى الرئيسي -->
+    <div class="container">
+        <section class="hero">
+            <h1 id="hero-title">حماية متقدمة ضد السرقة</h1>
+            <p id="hero-description">نظام شامل لحماية ممتلكاتك وتتبعها في الوقت الفعلي</p>
+            <button class="cta-button" onclick="redirectToSystem()" id="get-started">ابدأ الآن</button>
+        </section>
+
+        <section class="features">
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <h3 id="feature1-title">حماية متقدمة</h3>
+                <p id="feature1-desc">تشفير عالي المستوى لحماية بياناتك</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📍</div>
+                <h3 id="feature2-title">تتبع فوري</h3>
+                <p id="feature2-desc">تتبع موقع الجهاز في الوقت الفعلي</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🚨</div>
+                <h3 id="feature3-title">تنبيهات فورية</h3>
+                <p id="feature3-desc">إشعارات فورية عند اكتشاف أي نشاط مشبوه</p>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // ترجمات النظام
+        const translations = {
+            ar: {
+                page_title: "نظام مكافحة السرقة",
+                site_name: "نظام مكافحة السرقة",
+                current_lang: "العربية",
+                hero_title: "حماية متقدمة ضد السرقة",
+                hero_description: "نظام شامل لحماية ممتلكاتك وتتبعها في الوقت الفعلي",
+                get_started: "ابدأ الآن",
+                feature1_title: "حماية متقدمة",
+                feature1_desc: "تشفير عالي المستوى لحماية بياناتك",
+                feature2_title: "تتبع فوري",
+                feature2_desc: "تتبع موقع الجهاز في الوقت الفعلي",
+                feature3_title: "تنبيهات فورية",
+                feature3_desc: "إشعارات فورية عند اكتشاف أي نشاط مشبوه",
+                redirecting: "جاري التوجيه للنظام..."
+            },
+            en: {
+                page_title: "Anti-Theft System",
+                site_name: "Anti-Theft System",
+                current_lang: "English",
+                hero_title: "Advanced Anti-Theft Protection",
+                hero_description: "Comprehensive system to protect and track your belongings in real-time",
+                get_started: "Get Started",
+                feature1_title: "Advanced Protection",
+                feature1_desc: "High-level encryption to protect your data",
+                feature2_title: "Real-time Tracking",
+                feature2_desc: "Track device location in real-time",
+                feature3_title: "Instant Alerts",
+                feature3_desc: "Immediate notifications when suspicious activity is detected",
+                redirecting: "Redirecting to system..."
+            }
+        };
+
+        // إعدادات اللغة
+        const languageConfig = {
+            ar: { dir: 'rtl', flag: '🇸🇦', name: 'العربية' },
+            en: { dir: 'ltr', flag: '🇺🇸', name: 'English' }
+        };
+
+        // اللغة الحالية
+        let currentLanguage = getLanguageFromURL() || localStorage.getItem('selectedLanguage') || 'ar';
+
+        // استخراج اللغة من URL
+        function getLanguageFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const lang = urlParams.get('lang');
+            return (lang && translations[lang]) ? lang : null;
+        }
+
+        // تطبيق الترجمة
+        function applyTranslations(lang) {
+            // تحديث النصوص
+            Object.keys(translations[lang]).forEach(key => {
+                const element = document.getElementById(key.replace('_', '-'));
+                if (element) {
+                    element.textContent = translations[lang][key];
+                }
+            });
+
+            // تحديث اتجاه الصفحة
+            document.documentElement.setAttribute('lang', lang);
+            document.documentElement.setAttribute('dir', languageConfig[lang].dir);
+            document.title = translations[lang].page_title;
+
+            // تحديث زر اللغة
+            document.getElementById('current-flag').textContent = languageConfig[lang].flag;
+            document.getElementById('current-lang').textContent = languageConfig[lang].name;
+
+            // حفظ اللغة
+            localStorage.setItem('selectedLanguage', lang);
+            currentLanguage = lang;
+
+            // تحديث URL
+            const url = new URL(window.location);
+            url.searchParams.set('lang', lang);
+            window.history.pushState({ language: lang }, '', url);
+        }
+
+        // تبديل اللغة
+        function toggleLanguage() {
+            const newLang = currentLanguage === 'ar' ? 'en' : 'ar';
+            applyTranslations(newLang);
+            showNotification(translations[newLang].current_lang);
+        }
+
+        // التوجيه للنظام الأصلي
+        function redirectToSystem() {
+            showNotification(translations[currentLanguage].redirecting);
+            setTimeout(() => {
+                const backendURL = 'https://antitheft-backend-production.up.railway.app/';
+                window.location.href = backendURL + `?lang=${currentLanguage}`;
+            }, 1000);
+        }
+
+        // عرض الإشعارات
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.opacity = '1';
+                notification.style.transform = 'translateY(0)';
+            }, 100);
+
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateY(-20px)';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // تطبيق اللغة عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', function() {
+            applyTranslations(currentLanguage);
+        });
+    </script>
+</body>
+</html>
