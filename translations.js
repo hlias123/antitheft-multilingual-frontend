@@ -28,6 +28,7 @@ const translations = {
         
         // مميزات جديدة
         login_google: "تسجيل الدخول بـ Google",
+        logout: "تسجيل الخروج",
         create_account: "إنشاء حساب جديد",
         email_verification: "تأكيد البريد الإلكتروني",
         view_map: "عرض الخريطة",
@@ -70,6 +71,7 @@ const translations = {
         
         // New features
         login_google: "Login with Google",
+        logout: "Logout",
         create_account: "Create New Account",
         email_verification: "Email Verification",
         view_map: "View Map",
@@ -112,6 +114,7 @@ const translations = {
         
         // Νέα χαρακτηριστικά
         login_google: "Σύνδεση με Google",
+        logout: "Αποσύνδεση",
         create_account: "Δημιουργία Νέου Λογαριασμού",
         email_verification: "Επαλήθευση Email",
         view_map: "Προβολή Χάρτη",

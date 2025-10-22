@@ -490,4 +490,137 @@ function syncWithBackend(lang) {
 window.loginWithGoogle = loginWithGoogle;
 window.createAccount = createAccount;
 window.verifyEmail = verifyEmail;
+window.viewMap = viewMap;// دوا
+ل المميزات المحسنة
+function loginWithGoogle() {
+    const currentLang = localStorage.getItem('selectedLanguage') || 'ar';
+    const messages = {
+        ar: 'جاري التوجيه لتسجيل الدخول بـ Google...',
+        en: 'Redirecting to Google Login...',
+        el: 'Ανακατεύθυνση στη σύνδεση Google...'
+    };
+    
+    showNotification(messages[currentLang]);
+    
+    // تحديث حالة تسجيل الدخول
+    localStorage.setItem('isLoggedIn', 'true');
+    updateAuthButtons();
+    
+    setTimeout(() => {
+        const backendURL = 'https://antitheft-backend-production.up.railway.app/';
+        window.open(backendURL + `auth/google?lang=${currentLang}`, '_blank');
+    }, 1000);
+}
+
+function logout() {
+    const currentLang = localStorage.getItem('selectedLanguage') || 'ar';
+    const messages = {
+        ar: 'جاري تسجيل الخروج...',
+        en: 'Logging out...',
+        el: 'Αποσύνδεση...'
+    };
+    
+    showNotification(messages[currentLang]);
+    
+    // تحديث حالة تسجيل الخروج
+    localStorage.removeItem('isLoggedIn');
+    updateAuthButtons();
+    
+    setTimeout(() => {
+        const backendURL = 'https://antitheft-backend-production.up.railway.app/';
+        window.open(backendURL + `logout?lang=${currentLang}`, '_blank');
+    }, 1000);
+}
+
+function updateAuthButtons() {
+    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    
+    if (loginBtn && logoutBtn) {
+        if (isLoggedIn) {
+            loginBtn.style.display = 'none';
+            logoutBtn.style.display = 'flex';
+        } else {
+            loginBtn.style.display = 'flex';
+            logoutBtn.style.display = 'none';
+        }
+    }
+}
+
+function createAccount() {
+    const currentLang = localStorage.getItem('selectedLanguage') || 'ar';
+    const messages = {
+        ar: 'جاري التوجيه لإنشاء حساب جديد...',
+        en: 'Redirecting to create new account...',
+        el: 'Ανακατεύθυνση για δημιουργία νέου λογαριασμού...'
+    };
+    
+    showNotification(messages[currentLang]);
+    
+    setTimeout(() => {
+        const backendURL = 'https://antitheft-backend-production.up.railway.app/';
+        window.open(backendURL + `register?lang=${currentLang}`, '_blank');
+    }, 1000);
+}
+
+function verifyEmail() {
+    const currentLang = localStorage.getItem('selectedLanguage') || 'ar';
+    const messages = {
+        ar: 'جاري التوجيه لتأكيد البريد الإلكتروني...',
+        en: 'Redirecting to email verification...',
+        el: 'Ανακατεύθυνση για επαλήθευση email...'
+    };
+    
+    showNotification(messages[currentLang]);
+    
+    setTimeout(() => {
+        const backendURL = 'https://antitheft-backend-production.up.railway.app/';
+        window.open(backendURL + `verify-email?lang=${currentLang}`, '_blank');
+    }, 1000);
+}
+
+function viewMap() {
+    const currentLang = localStorage.getItem('selectedLanguage') || 'ar';
+    const messages = {
+        ar: 'جاري فتح الخريطة...',
+        en: 'Opening map...',
+        el: 'Άνοιγμα χάρτη...'
+    };
+    
+    showNotification(messages[currentLang]);
+    
+    setTimeout(() => {
+        const backendURL = 'https://antitheft-backend-production.up.railway.app/';
+        window.open(backendURL + `map?lang=${currentLang}`, '_blank');
+    }, 1000);
+}
+
+// تحديث دالة تطبيق الترجمة لتشمل الأزرار الجديدة
+function applyTranslationsEnhanced(lang) {
+    applyTranslations(lang);
+    updateAuthButtons();
+}
+
+// تحديث مستمع الأحداث
+document.addEventListener('DOMContentLoaded', function() {
+    // الكود الموجود...
+    
+    // تحديث أزرار تسجيل الدخول/الخروج
+    updateAuthButtons();
+    
+    // إضافة مستمع لتغيير اللغة
+    const originalApplyTranslations = window.applyTranslations;
+    window.applyTranslations = function(lang) {
+        originalApplyTranslations(lang);
+        updateAuthButtons();
+    };
+});
+
+// تصدير الدوال الجديدة
+window.loginWithGoogle = loginWithGoogle;
+window.logout = logout;
+window.createAccount = createAccount;
+window.verifyEmail = verifyEmail;
 window.viewMap = viewMap;
+window.updateAuthButtons = updateAuthButtons;

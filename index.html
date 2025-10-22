@@ -16,25 +16,40 @@
                 <h2 data-translate="site_name">نظام مكافحة السرقة</h2>
             </div>
 
-            <!-- زر تغيير اللغة -->
-            <div class="language-switcher">
-                <button id="languageBtn" class="lang-btn">
-                    <span class="flag" id="currentFlag">🇸🇦</span>
-                    <span data-translate="current_lang">العربية</span>
-                    <span class="arrow">▼</span>
-                </button>
-                <div class="lang-dropdown" id="langDropdown">
-                    <div class="lang-option" data-lang="ar">
-                        <span class="flag">🇸🇦</span>
-                        <span>العربية</span>
-                    </div>
-                    <div class="lang-option" data-lang="en">
-                        <span class="flag">🇺🇸</span>
-                        <span>English</span>
-                    </div>
-                    <div class="lang-option" data-lang="el">
-                        <span class="flag">🇬🇷</span>
-                        <span>Ελληνικά</span>
+            <!-- أزرار التنقل -->
+            <div class="nav-buttons">
+                <!-- زر تسجيل الدخول/الخروج -->
+                <div class="auth-buttons">
+                    <button id="loginBtn" class="auth-btn login-btn" onclick="loginWithGoogle()">
+                        <span class="auth-icon">🔐</span>
+                        <span data-translate="login_google">تسجيل الدخول</span>
+                    </button>
+                    <button id="logoutBtn" class="auth-btn logout-btn" onclick="logout()" style="display: none;">
+                        <span class="auth-icon">🚪</span>
+                        <span data-translate="logout">تسجيل الخروج</span>
+                    </button>
+                </div>
+                
+                <!-- زر تغيير اللغة -->
+                <div class="language-switcher">
+                    <button id="languageBtn" class="lang-btn">
+                        <span class="flag" id="currentFlag">🇸🇦</span>
+                        <span data-translate="current_lang">العربية</span>
+                        <span class="arrow">▼</span>
+                    </button>
+                    <div class="lang-dropdown" id="langDropdown">
+                        <div class="lang-option" data-lang="ar">
+                            <span class="flag">🇸🇦</span>
+                            <span>العربية</span>
+                        </div>
+                        <div class="lang-option" data-lang="en">
+                            <span class="flag">🇺🇸</span>
+                            <span>English</span>
+                        </div>
+                        <div class="lang-option" data-lang="el">
+                            <span class="flag">🇬🇷</span>
+                            <span>Ελληνικά</span>
+                        </div>
                     </div>
                 </div>
             </div>

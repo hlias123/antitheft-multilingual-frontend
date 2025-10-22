@@ -108,7 +108,7 @@ app.get('/api/config', (req, res) => {
         emailUser: config.emailUser,
         environment: config.nodeEnv,
         databaseConnected: !!config.databaseUrl,
-        supportedLanguages: ['ar', 'en']
+        supportedLanguages: ['ar', 'en', 'el']
     });
 });
 
