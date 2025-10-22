@@ -5,7 +5,8 @@
   "main": "server-simple.js",
   "scripts": {
     "start": "node server-simple.js",
-    "dev": "node server-simple.js"
+    "dev": "node server-simple.js",
+    "build": "echo 'No build step required for this project'"
   },
   "keywords": [
     "antitheft",
