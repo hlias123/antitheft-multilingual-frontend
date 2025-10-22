@@ -23,7 +23,7 @@ app.get('/', (req, res) => {
         const lang = req.query.lang || 'ar';
         
         // التحقق من اللغة المدعومة
-        const supportedLanguages = ['ar', 'en'];
+        const supportedLanguages = ['ar', 'en', 'el'];
         const selectedLang = supportedLanguages.includes(lang) ? lang : 'ar';
         
         // قراءة ملف HTML
@@ -39,6 +39,8 @@ app.get('/', (req, res) => {
         // تحديث اللغة واتجاه النص في HTML
         if (selectedLang === 'en') {
             html = html.replace('lang="ar" dir="rtl"', 'lang="en" dir="ltr"');
+        } else if (selectedLang === 'el') {
+            html = html.replace('lang="ar" dir="rtl"', 'lang="el" dir="ltr"');
         }
         
         // إضافة script لتعيين اللغة الافتراضية

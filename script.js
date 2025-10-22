@@ -368,4 +368,126 @@ function setupLanguageChangeListener() {
 }
 
 // تطبيق مستمع تغيير اللغة
-setupLanguageChangeListener();
+setupLanguageChangeListener();/
+/ دوال المميزات الجديدة
+function loginWithGoogle() {
+    const currentLang = localStorage.getItem('selectedLanguage') || 'ar';
+    const messages = {
+        ar: 'جاري التوجيه لتسجيل الدخول بـ Google...',
+        en: 'Redirecting to Google Login...',
+        el: 'Ανακατεύθυνση στη σύνδεση Google...'
+    };
+    
+    showNotification(messages[currentLang]);
+    
+    setTimeout(() => {
+        const backendURL = 'https://antitheft-backend-production.up.railway.app/';
+        window.open(backendURL + `auth/google?lang=${currentLang}`, '_blank');
+    }, 1000);
+}
+
+function createAccount() {
+    const currentLang = localStorage.getItem('selectedLanguage') || 'ar';
+    const messages = {
+        ar: 'جاري التوجيه لإنشاء حساب جديد...',
+        en: 'Redirecting to create new account...',
+        el: 'Ανακατεύθυνση για δημιουργία νέου λογαριασμού...'
+    };
+    
+    showNotification(messages[currentLang]);
+    
+    setTimeout(() => {
+        const backendURL = 'https://antitheft-backend-production.up.railway.app/';
+        window.open(backendURL + `register?lang=${currentLang}`, '_blank');
+    }, 1000);
+}
+
+function verifyEmail() {
+    const currentLang = localStorage.getItem('selectedLanguage') || 'ar';
+    const messages = {
+        ar: 'جاري التوجيه لتأكيد البريد الإلكتروني...',
+        en: 'Redirecting to email verification...',
+        el: 'Ανακατεύθυνση για επαλήθευση email...'
+    };
+    
+    showNotification(messages[currentLang]);
+    
+    setTimeout(() => {
+        const backendURL = 'https://antitheft-backend-production.up.railway.app/';
+        window.open(backendURL + `verify-email?lang=${currentLang}`, '_blank');
+    }, 1000);
+}
+
+function viewMap() {
+    const currentLang = localStorage.getItem('selectedLanguage') || 'ar';
+    const messages = {
+        ar: 'جاري فتح الخريطة...',
+        en: 'Opening map...',
+        el: 'Άνοιγμα χάρτη...'
+    };
+    
+    showNotification(messages[currentLang]);
+    
+    setTimeout(() => {
+        const backendURL = 'https://antitheft-backend-production.up.railway.app/';
+        window.open(backendURL + `map?lang=${currentLang}`, '_blank');
+    }, 1000);
+}
+
+// تحديث دالة تبديل اللغة لدعم اليونانية
+function switchLanguageWithURL(lang) {
+    const supportedLanguages = ['ar', 'en', 'el'];
+    if (!supportedLanguages.includes(lang)) {
+        lang = 'ar'; // اللغة الافتراضية
+    }
+    
+    if (lang !== currentLanguage) {
+        applyTranslations(lang);
+        updateURL(lang);
+        
+        // إضافة تأثير انتقال سلس
+        document.body.style.opacity = '0.8';
+        setTimeout(() => {
+            document.body.style.opacity = '1';
+        }, 200);
+    }
+}
+
+// تحديث دالة التحقق من اللغة المدعومة
+function getLanguageFromURL() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const langParam = urlParams.get('lang');
+    
+    // التحقق من أن اللغة مدعومة (العربية، الإنجليزية، اليونانية)
+    const supportedLanguages = ['ar', 'en', 'el'];
+    if (langParam && supportedLanguages.includes(langParam)) {
+        return langParam;
+    }
+    
+    return null;
+}
+
+// إضافة دعم اللغة اليونانية في الخادم
+function syncWithBackend(lang) {
+    const supportedLanguages = ['ar', 'en', 'el'];
+    const finalLang = supportedLanguages.includes(lang) ? lang : 'ar';
+    
+    const backendURL = 'https://antitheft-backend-production.up.railway.app/';
+    
+    fetch(backendURL + 'api/user/language', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept-Language': finalLang
+        },
+        body: JSON.stringify({ language: finalLang })
+    }).catch(error => {
+        console.log('تعذر مزامنة اللغة مع الخادم:', error);
+    });
+}
+
+// تصدير الدوال الجديدة
+window.loginWithGoogle = loginWithGoogle;
+window.createAccount = createAccount;
+window.verifyEmail = verifyEmail;
+window.viewMap = viewMap;
