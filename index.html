@@ -1,13 +1,11 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title data-translate="page_title">نظام مكافحة السرقة</title>
     <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
     <!-- شريط التنقل -->
     <nav class="navbar">
@@ -15,7 +13,7 @@
             <div class="nav-logo">
                 <h2 data-translate="site_name">نظام مكافحة السرقة</h2>
             </div>
-
+            
             <!-- زر تغيير اللغة -->
             <div class="language-switcher">
                 <button id="languageBtn" class="lang-btn">
@@ -47,24 +45,24 @@
             </div>
         </section>
 
-        <!-- قسم الإحصائيات المباشرة -->
+        <!-- قسم الإحصائيات -->
         <section class="stats-section">
             <div class="container">
                 <h2 data-translate="stats_title">إحصائيات النظام</h2>
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-icon">🛡️</div>
-                        <div class="stat-number" id="protected-devices">---</div>
+                        <div class="stat-number">1,247</div>
                         <div class="stat-label" data-translate="protected_devices">الأجهزة المحمية</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">🚨</div>
-                        <div class="stat-number" id="active-alerts">---</div>
+                        <div class="stat-number">3</div>
                         <div class="stat-label" data-translate="active_alerts">التنبيهات النشطة</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">⚡</div>
-                        <div class="stat-number" id="response-time">---</div>
+                        <div class="stat-number">150ms</div>
                         <div class="stat-label" data-translate="response_time">زمن الاستجابة</div>
                     </div>
                 </div>
@@ -103,8 +101,27 @@
     </footer>
 
     <script src="translations.js"></script>
-    <script src="backend-integration.js"></script>
+    <script>
+        // إعداد اللغة للـ GitHub Pages
+        const urlParams = new URLSearchParams(window.location.search);
+        const langParam = urlParams.get('lang');
+        if (langParam && translations[langParam]) {
+            window.initialLanguage = langParam;
+            localStorage.setItem('selectedLanguage', langParam);
+        }
+        
+        // تعديل زر "ابدأ الآن" للتوجيه للموقع الأصلي
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctaButton = document.querySelector('.cta-button');
+            if (ctaButton) {
+                ctaButton.addEventListener('click', function() {
+                    const currentLang = localStorage.getItem('selectedLanguage') || 'ar';
+                    const backendURL = 'https://antitheft-backend-production.up.railway.app/';
+                    window.open(backendURL + `?lang=${currentLang}`, '_blank');
+                });
+            }
+        });
+    </script>
     <script src="script.js"></script>
 </body>
-
 </html>
