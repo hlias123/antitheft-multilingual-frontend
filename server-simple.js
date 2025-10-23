@@ -30,7 +30,7 @@ async function sendEmail(to, subject, htmlContent) {
             subject: subject,
             html: htmlContent
         };
-        
+
         const result = await emailTransporter.sendMail(mailOptions);
         console.log('Email sent successfully:', result.messageId);
         return { success: true, messageId: result.messageId };
@@ -727,715 +727,715 @@ app.get('/dashboard', (req, res) => {
     const t = translations[lang] || translations.ar;
 
     res.send(`
-    <!DOCTYPE html>
-    <html lang="${lang}" dir="${dir}">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>${t.title}</title>
-        <style>
-            body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
-            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; }
-            .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-            .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 20px 0; }
-            .stat-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; }
-            .stat-number { font-size: 2rem; font-weight: bold; color: #667eea; }
-            .devices-section { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin: 20px 0; }
-            .device-item { padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-            .device-status { padding: 5px 10px; border-radius: 15px; color: white; font-size: 12px; }
-            .online { background: #4caf50; }
-            .offline { background: #f44336; }
-            .pin-section { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin: 20px 0; text-align: center; }
-            .pin-input { padding: 15px; font-size: 24px; text-align: center; letter-spacing: 10px; border: 2px solid #ddd; border-radius: 10px; margin: 10px; width: 200px; }
-            .pin-input:focus { border-color: #667eea; outline: none; box-shadow: 0 0 10px rgba(102, 126, 234, 0.3); }
-            .btn { padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
-            .btn:hover { background: #5a67d8; }
-            .map-section { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin: 20px 0; }
-            .map-placeholder { height: 300px; background: linear-gradient(45deg, #4caf50, #2196f3); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; }
-            
-            /* رسالة الترحيب والتحذير */
-            .welcome-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 10000; }
-            .welcome-content { background: white; padding: 30px; border-radius: 15px; max-width: 500px; text-align: center; color: #333; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-            .welcome-title { color: #4caf50; font-size: 24px; margin-bottom: 20px; }
-            .welcome-text { line-height: 1.6; margin-bottom: 20px; }
-            .warning-text { background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 8px; margin: 15px 0; color: #856404; }
-            .welcome-btn { background: #4caf50; color: white; padding: 12px 30px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; }
-            .welcome-btn:hover { background: #45a049; }
-        </style>
-    </head>
-    <body>
-        <!-- رسالة الترحيب والتحذير -->
-        <div class="welcome-modal" id="welcomeModal">
-            <div class="welcome-content">
-                <div class="welcome-title">🛡️ ${t.welcomeTitle}</div>
-                <div class="welcome-text">
-                    <p><strong>${t.welcomeText1}</strong></p>
-                    <p>${t.welcomeText2}</p>
-                </div>
-                <div class="warning-text">
-                    <strong>⚠️ ${t.warningTitle}</strong><br>
-                    ${t.warningText}
-                </div>
-                <div class="welcome-text">
-                    <p>✅ ${t.guideline1}</p>
-                    <p>✅ ${t.guideline2}</p>
-                    <p>✅ ${t.guideline3}</p>
-                </div>
-                <button class="welcome-btn" onclick="closeWelcomeModal()">${t.understood}</button>
-            </div>
-        </div>
-        
-        <div class="header">
-            <div class="container">
-                <h1>🛡️ ${t.title}</h1>
-                <p>${t.welcome} <span id="userEmail">المستخدم</span> 
-                   <button onclick="showWelcomeAgain()" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; margin-left: 10px;">ℹ️ ${t.showWelcome}</button>
-                </p>
-                <div style="margin-top: 10px;">
-                    <select onchange="changeLanguage(this.value)" style="padding: 5px 10px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.2); color: white;">
-                        <option value="ar" ${lang === 'ar' ? 'selected' : ''}>العربية</option>
-                        <option value="en" ${lang === 'en' ? 'selected' : ''}>English</option>
-                        <option value="el" ${lang === 'el' ? 'selected' : ''}>Ελληνικά</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-        
-        <div class="container">
-            <!-- إحصائيات حقيقية -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-number" id="deviceCount">0</div>
-                    <div>${t.connectedDevices}</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="alertCount">0</div>
-                    <div>${t.activeAlerts}</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">150ms</div>
-                    <div>${t.responseTime}</div>
-                </div>
-            </div>
-            
-            <!-- تأكيد PIN -->
-            <div class="pin-section">
-                <h3>🔐 ${t.pinTitle}</h3>
-                <p>${t.pinDesc}</p>
-                <input type="password" class="pin-input" id="pinInput" placeholder="****" maxlength="4" onkeypress="if(event.key==='Enter') verifyPIN()" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-                <br>
-                <button class="btn" onclick="verifyPIN()">${t.confirmPin}</button>
-                <div id="pinStatus"></div>
-            </div>
-            
-            <!-- الأجهزة المتصلة -->
-            <div class="devices-section">
-                <h3>📱 ${t.devicesTitle}</h3>
-                <div id="devicesList">
-                    <p>${t.loadingDevices}</p>
-                </div>
-            </div>
-            
-            <!-- الخريطة الحقيقية -->
-            <div class="map-section">
-                <h3>🗺️ ${t.mapTitle}</h3>
-                <div class="map-placeholder" id="mapContainer">
-                    <div>
-                        <div style="font-size: 48px; margin-bottom: 10px;">📍</div>
-                        <div>${t.mapPlaceholder}</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <script>
-            let sessionId = localStorage.getItem('sessionId');
-            let isPinVerified = false;
-            
-            // عرض البريد الإلكتروني المحفوظ
-            const userEmail = localStorage.getItem('userEmail');
-            if (userEmail) {
-                document.getElementById('userEmail').textContent = userEmail;
-            }
-            
-            // تحديث الإحصائيات
-            async function updateStats() {
-                try {
-                    const response = await fetch('/api/stats');
-                    const data = await response.json();
-                    document.getElementById('deviceCount').textContent = data.protectedDevices;
-                    document.getElementById('alertCount').textContent = data.activeAlerts;
-                } catch (error) {
-                    console.error('خطأ في تحديث الإحصائيات:', error);
-                }
-            }
-            
-            // تحديث قائمة الأجهزة
-            async function updateDevices() {
-                try {
-                    const response = await fetch('/api/devices');
-                    const data = await response.json();
-                    
-                    const devicesList = document.getElementById('devicesList');
-                    if (data.devices && data.devices.length > 0) {
-                        devicesList.innerHTML = data.devices.map(device => \`
-                            <div class="device-item">
-                                <div>
-                                    <strong>📱 \${device.deviceInfo?.model || 'جهاز غير معروف'}</strong><br>
-                                    <small>آخر ظهور: \${new Date(device.lastSeen).toLocaleString('ar-SA')}</small>
-                                </div>
-                                <div>
-                                    <span class="device-status \${device.isOnline ? 'online' : 'offline'}">
-                                        \${device.isOnline ? 'متصل' : 'غير متصل'}
-                                    </span>
+        < !DOCTYPE html >
+            <html lang="${lang}" dir="${dir}">
+                <head>
+                    <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                            <title>${t.title}</title>
+                            <style>
+                                body {font - family: Arial, sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
+                                .header {background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; }
+                                .container {max - width: 1200px; margin: 0 auto; padding: 20px; }
+                                .stats-grid {display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 20px 0; }
+                                .stat-card {background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; }
+                                .stat-number {font - size: 2rem; font-weight: bold; color: #667eea; }
+                                .devices-section {background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin: 20px 0; }
+                                .device-item {padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+                                .device-status {padding: 5px 10px; border-radius: 15px; color: white; font-size: 12px; }
+                                .online {background: #4caf50; }
+                                .offline {background: #f44336; }
+                                .pin-section {background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin: 20px 0; text-align: center; }
+                                .pin-input {padding: 15px; font-size: 24px; text-align: center; letter-spacing: 10px; border: 2px solid #ddd; border-radius: 10px; margin: 10px; width: 200px; }
+                                .pin-input:focus {border - color: #667eea; outline: none; box-shadow: 0 0 10px rgba(102, 126, 234, 0.3); }
+                                .btn {padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
+                                .btn:hover {background: #5a67d8; }
+                                .map-section {background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin: 20px 0; }
+                                .map-placeholder {height: 300px; background: linear-gradient(45deg, #4caf50, #2196f3); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; }
+
+                                /* رسالة الترحيب والتحذير */
+                                .welcome-modal {position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 10000; }
+                                .welcome-content {background: white; padding: 30px; border-radius: 15px; max-width: 500px; text-align: center; color: #333; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+                                .welcome-title {color: #4caf50; font-size: 24px; margin-bottom: 20px; }
+                                .welcome-text {line - height: 1.6; margin-bottom: 20px; }
+                                .warning-text {background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 8px; margin: 15px 0; color: #856404; }
+                                .welcome-btn {background: #4caf50; color: white; padding: 12px 30px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; }
+                                .welcome-btn:hover {background: #45a049; }
+                            </style>
+                        </head>
+                        <body>
+                            <!-- رسالة الترحيب والتحذير -->
+                            <div class="welcome-modal" id="welcomeModal">
+                                <div class="welcome-content">
+                                    <div class="welcome-title">🛡️ ${t.welcomeTitle}</div>
+                                    <div class="welcome-text">
+                                        <p><strong>${t.welcomeText1}</strong></p>
+                                        <p>${t.welcomeText2}</p>
+                                    </div>
+                                    <div class="warning-text">
+                                        <strong>⚠️ ${t.warningTitle}</strong><br>
+                                            ${t.warningText}
+                                    </div>
+                                    <div class="welcome-text">
+                                        <p>✅ ${t.guideline1}</p>
+                                        <p>✅ ${t.guideline2}</p>
+                                        <p>✅ ${t.guideline3}</p>
+                                    </div>
+                                    <button class="welcome-btn" onclick="closeWelcomeModal()">${t.understood}</button>
                                 </div>
                             </div>
-                        \`).join('');
-                    } else {
-                        devicesList.innerHTML = '<p>لا توجد أجهزة متصلة حالياً</p>';
-                    }
-                } catch (error) {
-                    console.error('خطأ في تحديث الأجهزة:', error);
-                }
+
+                            <div class="header">
+                                <div class="container">
+                                    <h1>🛡️ ${t.title}</h1>
+                                    <p>${t.welcome} <span id="userEmail">المستخدم</span>
+                                        <button onclick="showWelcomeAgain()" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; margin-left: 10px;">ℹ️ ${t.showWelcome}</button>
+                                    </p>
+                                    <div style="margin-top: 10px;">
+                                        <select onchange="changeLanguage(this.value)" style="padding: 5px 10px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.2); color: white;">
+                                            <option value="ar" ${lang === 'ar' ? 'selected' : ''}>العربية</option>
+                                            <option value="en" ${lang === 'en' ? 'selected' : ''}>English</option>
+                                            <option value="el" ${lang === 'el' ? 'selected' : ''}>Ελληνικά</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="container">
+                                <!-- إحصائيات حقيقية -->
+                                <div class="stats-grid">
+                                    <div class="stat-card">
+                                        <div class="stat-number" id="deviceCount">0</div>
+                                        <div>${t.connectedDevices}</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-number" id="alertCount">0</div>
+                                        <div>${t.activeAlerts}</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-number">150ms</div>
+                                        <div>${t.responseTime}</div>
+                                    </div>
+                                </div>
+
+                                <!-- تأكيد PIN -->
+                                <div class="pin-section">
+                                    <h3>🔐 ${t.pinTitle}</h3>
+                                    <p>${t.pinDesc}</p>
+                                    <input type="password" class="pin-input" id="pinInput" placeholder="****" maxlength="4" onkeypress="if(event.key==='Enter') verifyPIN()" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                                        <br>
+                                            <button class="btn" onclick="verifyPIN()">${t.confirmPin}</button>
+                                            <div id="pinStatus"></div>
+                                        </div>
+
+                                        <!-- الأجهزة المتصلة -->
+                                        <div class="devices-section">
+                                            <h3>📱 ${t.devicesTitle}</h3>
+                                            <div id="devicesList">
+                                                <p>${t.loadingDevices}</p>
+                                            </div>
+                                        </div>
+
+                                        <!-- الخريطة الحقيقية -->
+                                        <div class="map-section">
+                                            <h3>🗺️ ${t.mapTitle}</h3>
+                                            <div class="map-placeholder" id="mapContainer">
+                                                <div>
+                                                    <div style="font-size: 48px; margin-bottom: 10px;">📍</div>
+                                                    <div>${t.mapPlaceholder}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                </div>
+
+                                <script>
+                                    let sessionId = localStorage.getItem('sessionId');
+                                    let isPinVerified = false;
+
+                                    // عرض البريد الإلكتروني المحفوظ
+                                    const userEmail = localStorage.getItem('userEmail');
+                                    if (userEmail) {
+                                        document.getElementById('userEmail').textContent = userEmail;
             }
-            
-            // تأكيد PIN
-            async function verifyPIN() {
-                const pin = document.getElementById('pinInput').value;
-                const statusDiv = document.getElementById('pinStatus');
-                
-                console.log('Verifying PIN:', pin, 'SessionId:', sessionId);
-                
-                if (!sessionId) {
-                    statusDiv.innerHTML = '<p style="color: red;">خطأ: لا توجد جلسة نشطة. يرجى تسجيل الدخول مرة أخرى</p>';
-                    setTimeout(() => {
-                        window.location.href = '/login?lang=ar';
-                    }, 2000);
-                    return;
-                }
-                
-                if (!pin || pin.length !== 4) {
-                    statusDiv.innerHTML = '<p style="color: red;">يرجى إدخال PIN مكون من 4 أرقام</p>';
-                    return;
-                }
-                
-                if (!/^\d{4}$/.test(pin)) {
-                    statusDiv.innerHTML = '<p style="color: red;">PIN يجب أن يحتوي على أرقام فقط</p>';
-                    return;
-                }
-                
-                statusDiv.innerHTML = '<p style="color: blue;">جاري التحقق من PIN...</p>';
-                
+
+                                    // تحديث الإحصائيات
+                                    async function updateStats() {
                 try {
-                    const response = await fetch('/api/auth/verify-pin', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ sessionId: sessionId, pin: pin })
-                    });
-                    
-                    console.log('Response status:', response.status);
-                    const data = await response.json();
-                    console.log('Response data:', data);
-                    
-                    if (data.success) {
-                        isPinVerified = true;
-                        statusDiv.innerHTML = '<p style="color: green;">✅ تم تأكيد PIN بنجاح!</p>';
-                        document.querySelector('.pin-section').style.background = '#e8f5e8';
-                        document.getElementById('pinInput').disabled = true;
-                        document.querySelector('.pin-section button').disabled = true;
-                        document.querySelector('.pin-section button').textContent = 'تم التأكيد ✅';
-                    } else {
-                        statusDiv.innerHTML = \`<p style="color: red;">❌ \${data.message}</p>\`;
-                        document.getElementById('pinInput').value = '';
-                        document.getElementById('pinInput').focus();
-                    }
+                    const response = await fetch('/api/stats');
+                                    const data = await response.json();
+                                    document.getElementById('deviceCount').textContent = data.protectedDevices;
+                                    document.getElementById('alertCount').textContent = data.activeAlerts;
                 } catch (error) {
-                    statusDiv.innerHTML = '<p style="color: red;">خطأ في التحقق من PIN</p>';
-                    console.error('PIN verification error:', error);
+                                        console.error('خطأ في تحديث الإحصائيات:', error);
                 }
             }
-            
+
+                                    // تحديث قائمة الأجهزة
+                                    async function updateDevices() {
+                try {
+                    const response = await fetch('/api/devices');
+                                    const data = await response.json();
+
+                                    const devicesList = document.getElementById('devicesList');
+                    if (data.devices && data.devices.length > 0) {
+                                        devicesList.innerHTML = data.devices.map(device => \`
+                                    <div class="device-item">
+                                        <div>
+                                            <strong>📱 \${device.deviceInfo?.model || 'جهاز غير معروف'}</strong><br>
+                                                <small>آخر ظهور: \${new Date(device.lastSeen).toLocaleString('ar-SA')}</small>
+                                        </div>
+                                        <div>
+                                            <span class="device-status \${device.isOnline ? 'online' : 'offline'}">
+                                                \${device.isOnline ? 'متصل' : 'غير متصل'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    \`).join('');
+                    } else {
+                                        devicesList.innerHTML = '<p>لا توجد أجهزة متصلة حالياً</p>';
+                    }
+                } catch (error) {
+                                        console.error('خطأ في تحديث الأجهزة:', error);
+                }
+            }
+
+                                    // تأكيد PIN
+                                    async function verifyPIN() {
+                const pin = document.getElementById('pinInput').value;
+                                    const statusDiv = document.getElementById('pinStatus');
+
+                                    console.log('Verifying PIN:', pin, 'SessionId:', sessionId);
+
+                                    if (!sessionId) {
+                                        statusDiv.innerHTML = '<p style="color: red;">خطأ: لا توجد جلسة نشطة. يرجى تسجيل الدخول مرة أخرى</p>';
+                    setTimeout(() => {
+                                        window.location.href = '/login?lang=ar';
+                    }, 2000);
+                                    return;
+                }
+
+                                    if (!pin || pin.length !== 4) {
+                                        statusDiv.innerHTML = '<p style="color: red;">يرجى إدخال PIN مكون من 4 أرقام</p>';
+                                    return;
+                }
+
+                                    if (!/^\d{4}$/.test(pin)) {
+                                        statusDiv.innerHTML = '<p style="color: red;">PIN يجب أن يحتوي على أرقام فقط</p>';
+                                    return;
+                }
+
+                                    statusDiv.innerHTML = '<p style="color: blue;">جاري التحقق من PIN...</p>';
+
+                                    try {
+                    const response = await fetch('/api/auth/verify-pin', {
+                                        method: 'POST',
+                                    headers: {'Content-Type': 'application/json' },
+                                    body: JSON.stringify({sessionId: sessionId, pin: pin })
+                    });
+
+                                    console.log('Response status:', response.status);
+                                    const data = await response.json();
+                                    console.log('Response data:', data);
+
+                                    if (data.success) {
+                                        isPinVerified = true;
+                                    statusDiv.innerHTML = '<p style="color: green;">✅ تم تأكيد PIN بنجاح!</p>';
+                                    document.querySelector('.pin-section').style.background = '#e8f5e8';
+                                    document.getElementById('pinInput').disabled = true;
+                                    document.querySelector('.pin-section button').disabled = true;
+                                    document.querySelector('.pin-section button').textContent = 'تم التأكيد ✅';
+                    } else {
+                                        statusDiv.innerHTML = \`<p style="color: red;">❌ \${data.message}</p>\`;
+                                    document.getElementById('pinInput').value = '';
+                                    document.getElementById('pinInput').focus();
+                    }
+                } catch (error) {
+                                        statusDiv.innerHTML = '<p style="color: red;">خطأ في التحقق من PIN</p>';
+                                    console.error('PIN verification error:', error);
+                }
+            }
+
             // تحديث البيانات كل 5 ثوان
             setInterval(() => {
-                updateStats();
-                updateDevices();
+                                        updateStats();
+                                    updateDevices();
             }, 5000);
-            
-            // تحديث أولي
-            updateStats();
-            updateDevices();
-            
-            // تركيز على حقل PIN عند تحميل الصفحة
-            document.getElementById('pinInput').focus();
-            
-            // إظهار رسالة الترحيب إذا لم يتم عرضها من قبل
-            showWelcomeMessage();
-            
-            // دالة إظهار رسالة الترحيب
-            function showWelcomeMessage() {
+
+                                    // تحديث أولي
+                                    updateStats();
+                                    updateDevices();
+
+                                    // تركيز على حقل PIN عند تحميل الصفحة
+                                    document.getElementById('pinInput').focus();
+
+                                    // إظهار رسالة الترحيب إذا لم يتم عرضها من قبل
+                                    showWelcomeMessage();
+
+                                    // دالة إظهار رسالة الترحيب
+                                    function showWelcomeMessage() {
                 const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
-                if (!hasSeenWelcome) {
-                    document.getElementById('welcomeModal').style.display = 'flex';
+                                    if (!hasSeenWelcome) {
+                                        document.getElementById('welcomeModal').style.display = 'flex';
                 } else {
-                    document.getElementById('welcomeModal').style.display = 'none';
+                                        document.getElementById('welcomeModal').style.display = 'none';
                 }
             }
-            
-            // دالة إغلاق رسالة الترحيب
-            function closeWelcomeModal() {
-                document.getElementById('welcomeModal').style.display = 'none';
-                localStorage.setItem('hasSeenWelcome', 'true');
+
+                                    // دالة إغلاق رسالة الترحيب
+                                    function closeWelcomeModal() {
+                                        document.getElementById('welcomeModal').style.display = 'none';
+                                    localStorage.setItem('hasSeenWelcome', 'true');
                 // تركيز على حقل PIN بعد إغلاق الرسالة
                 setTimeout(() => {
-                    document.getElementById('pinInput').focus();
+                                        document.getElementById('pinInput').focus();
                 }, 100);
             }
-            
-            // دالة إعادة عرض رسالة الترحيب
-            function showWelcomeAgain() {
-                document.getElementById('welcomeModal').style.display = 'flex';
+
+                                    // دالة إعادة عرض رسالة الترحيب
+                                    function showWelcomeAgain() {
+                                        document.getElementById('welcomeModal').style.display = 'flex';
             }
-            
-            // دالة تغيير اللغة
-            function changeLanguage(newLang) {
+
+                                    // دالة تغيير اللغة
+                                    function changeLanguage(newLang) {
                 const currentUrl = new URL(window.location);
-                currentUrl.searchParams.set('lang', newLang);
-                window.location.href = currentUrl.toString();
+                                    currentUrl.searchParams.set('lang', newLang);
+                                    window.location.href = currentUrl.toString();
             }
-            
-            // جعل الدوال متاحة عالمياً
-            window.closeWelcomeModal = closeWelcomeModal;
-            window.showWelcomeAgain = showWelcomeAgain;
-            window.changeLanguage = changeLanguage;
-        </script>
-    </body>
-    </html>
-    `);
+
+                                    // جعل الدوال متاحة عالمياً
+                                    window.closeWelcomeModal = closeWelcomeModal;
+                                    window.showWelcomeAgain = showWelcomeAgain;
+                                    window.changeLanguage = changeLanguage;
+                                </script>
+                        </body>
+                    </html>
+                    `);
 });
 
 // صفحة تسجيل الدخول الحقيقية
 app.get('/login', (req, res) => {
     const lang = req.query.lang || 'ar';
-    const dir = lang === 'ar' ? 'rtl' : 'ltr';
+                    const dir = lang === 'ar' ? 'rtl' : 'ltr';
 
-    // ترجمات صفحة تسجيل الدخول
-    const translations = {
-        ar: {
-            title: 'تسجيل الدخول - نظام مكافحة السرقة',
-            loginTitle: 'تسجيل الدخول',
-            systemName: 'نظام مكافحة السرقة المتقدم',
-            welcomeMsg: 'أهلاً وسهلاً بك!',
-            welcomeDesc: 'هذا النظام مصمم لحماية جهازك وممتلكاتك',
-            emailPlaceholder: 'البريد الإلكتروني',
-            passwordPlaceholder: 'كلمة المرور',
-            loginBtn: 'تسجيل الدخول',
-            forgotPassword: 'نسيت كلمة المرور؟',
-            createAccount: 'إنشاء حساب جديد',
-            demoAccount: 'الحساب التجريبي: hlia.hlias123@gmail.com / demo123',
-            backHome: 'العودة للصفحة الرئيسية'
+                    // ترجمات صفحة تسجيل الدخول
+                    const translations = {
+                        ar: {
+                        title: 'تسجيل الدخول - نظام مكافحة السرقة',
+                    loginTitle: 'تسجيل الدخول',
+                    systemName: 'نظام مكافحة السرقة المتقدم',
+                    welcomeMsg: 'أهلاً وسهلاً بك!',
+                    welcomeDesc: 'هذا النظام مصمم لحماية جهازك وممتلكاتك',
+                    emailPlaceholder: 'البريد الإلكتروني',
+                    passwordPlaceholder: 'كلمة المرور',
+                    loginBtn: 'تسجيل الدخول',
+                    forgotPassword: 'نسيت كلمة المرور؟',
+                    createAccount: 'إنشاء حساب جديد',
+                    demoAccount: 'الحساب التجريبي: hlia.hlias123@gmail.com / demo123',
+                    backHome: 'العودة للصفحة الرئيسية'
         },
-        en: {
-            title: 'Login - Anti-Theft System',
-            loginTitle: 'Login',
-            systemName: 'Advanced Anti-Theft System',
-            welcomeMsg: 'Welcome!',
-            welcomeDesc: 'This system is designed to protect your device and belongings',
-            emailPlaceholder: 'Email Address',
-            passwordPlaceholder: 'Password',
-            loginBtn: 'Login',
-            forgotPassword: 'Forgot Password?',
-            createAccount: 'Create New Account',
-            demoAccount: 'Demo Account: hlia.hlias123@gmail.com / demo123',
-            backHome: 'Back to Home'
+                    en: {
+                        title: 'Login - Anti-Theft System',
+                    loginTitle: 'Login',
+                    systemName: 'Advanced Anti-Theft System',
+                    welcomeMsg: 'Welcome!',
+                    welcomeDesc: 'This system is designed to protect your device and belongings',
+                    emailPlaceholder: 'Email Address',
+                    passwordPlaceholder: 'Password',
+                    loginBtn: 'Login',
+                    forgotPassword: 'Forgot Password?',
+                    createAccount: 'Create New Account',
+                    demoAccount: 'Demo Account: hlia.hlias123@gmail.com / demo123',
+                    backHome: 'Back to Home'
         },
-        el: {
-            title: 'Σύνδεση - Σύστημα Αντικλοπής',
-            loginTitle: 'Σύνδεση',
-            systemName: 'Προηγμένο Σύστημα Αντικλοπής',
-            welcomeMsg: 'Καλώς ήρθατε!',
-            welcomeDesc: 'Αυτό το σύστημα έχει σχεδιαστεί για να προστατεύει τη συσκευή και τα αντικείμενά σας',
-            emailPlaceholder: 'Διεύθυνση Email',
-            passwordPlaceholder: 'Κωδικός Πρόσβασης',
-            loginBtn: 'Σύνδεση',
-            forgotPassword: 'Ξεχάσατε τον Κωδικό;',
-            createAccount: 'Δημιουργία Νέου Λογαριασμού',
-            demoAccount: 'Demo Λογαριασμός: hlia.hlias123@gmail.com / demo123',
-            backHome: 'Επιστροφή στην Αρχική'
+                    el: {
+                        title: 'Σύνδεση - Σύστημα Αντικλοπής',
+                    loginTitle: 'Σύνδεση',
+                    systemName: 'Προηγμένο Σύστημα Αντικλοπής',
+                    welcomeMsg: 'Καλώς ήρθατε!',
+                    welcomeDesc: 'Αυτό το σύστημα έχει σχεδιαστεί για να προστατεύει τη συσκευή και τα αντικείμενά σας',
+                    emailPlaceholder: 'Διεύθυνση Email',
+                    passwordPlaceholder: 'Κωδικός Πρόσβασης',
+                    loginBtn: 'Σύνδεση',
+                    forgotPassword: 'Ξεχάσατε τον Κωδικό;',
+                    createAccount: 'Δημιουργία Νέου Λογαριασμού',
+                    demoAccount: 'Demo Λογαριασμός: hlia.hlias123@gmail.com / demo123',
+                    backHome: 'Επιστροφή στην Αρχική'
         }
     };
 
-    const t = translations[lang] || translations.ar;
+                    const t = translations[lang] || translations.ar;
 
-    res.send(`
-    <!DOCTYPE html>
-    <html lang="${lang}" dir="${dir}">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>${t.title}</title>
-        <style>
-            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-            .container { background: rgba(255,255,255,0.1); padding: 40px; border-radius: 20px; text-align: center; backdrop-filter: blur(10px); max-width: 400px; }
-            .email-input { width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
-            .login-btn { background: #4285f4; color: white; padding: 15px 30px; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; margin: 10px; transition: all 0.3s; width: 100%; }
-            .login-btn:hover { background: #3367d6; }
-            .back-btn { background: rgba(255,255,255,0.2); color: white; padding: 10px 20px; border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; text-decoration: none; display: inline-block; margin-top: 20px; }
-            .error { color: #ffcdd2; margin: 10px 0; }
-            .success { color: #c8e6c9; margin: 10px 0; }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>🔐 ${t.loginTitle}</h1>
-            <p>${t.systemName}</p>
-            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin: 15px 0; font-size: 14px;">
-                <p>🛡️ <strong>${t.welcomeMsg}</strong></p>
-                <p>${t.welcomeDesc}</p>
-            </div>
-            <div>
-                <input type="email" class="email-input" id="emailInput" placeholder="${t.emailPlaceholder}" required>
-                <input type="password" class="email-input" id="passwordInput" placeholder="${t.passwordPlaceholder}" required onkeypress="if(event.key==='Enter') login()">
-                <button class="login-btn" onclick="login()">🔐 ${t.loginBtn}</button>
-                <div id="loginStatus"></div>
-                <div style="margin-top: 20px;">
-                    <a href="/forgot-password?lang=${lang}" style="color: #ffeb3b; text-decoration: none; margin: 10px;">🔑 ${t.forgotPassword}</a>
-                    <br>
-                    <a href="/register?lang=${lang}" style="color: #4caf50; text-decoration: none; margin: 10px;">📝 ${t.createAccount}</a>
-                </div>
-                <p style="font-size: 12px; opacity: 0.8; margin-top: 15px;">
-                    💡 ${t.demoAccount}
-                </p>
-            </div>
-            <a href="/?lang=${lang}" class="back-btn">${t.backHome}</a>
-        </div>
-        <script>
-            async function login() {
+                    res.send(`
+                    <!DOCTYPE html>
+                    <html lang="${lang}" dir="${dir}">
+                        <head>
+                            <meta charset="UTF-8">
+                                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                    <title>${t.title}</title>
+                                    <style>
+                                        body {font - family: Arial, sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+                                        .container {background: rgba(255,255,255,0.1); padding: 40px; border-radius: 20px; text-align: center; backdrop-filter: blur(10px); max-width: 400px; }
+                                        .email-input {width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
+                                        .login-btn {background: #4285f4; color: white; padding: 15px 30px; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; margin: 10px; transition: all 0.3s; width: 100%; }
+                                        .login-btn:hover {background: #3367d6; }
+                                        .back-btn {background: rgba(255,255,255,0.2); color: white; padding: 10px 20px; border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; text-decoration: none; display: inline-block; margin-top: 20px; }
+                                        .error {color: #ffcdd2; margin: 10px 0; }
+                                        .success {color: #c8e6c9; margin: 10px 0; }
+                                    </style>
+                                </head>
+                                <body>
+                                    <div class="container">
+                                        <h1>🔐 ${t.loginTitle}</h1>
+                                        <p>${t.systemName}</p>
+                                        <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin: 15px 0; font-size: 14px;">
+                                            <p>🛡️ <strong>${t.welcomeMsg}</strong></p>
+                                            <p>${t.welcomeDesc}</p>
+                                        </div>
+                                        <div>
+                                            <input type="email" class="email-input" id="emailInput" placeholder="${t.emailPlaceholder}" required>
+                                                <input type="password" class="email-input" id="passwordInput" placeholder="${t.passwordPlaceholder}" required onkeypress="if(event.key==='Enter') login()">
+                                                    <button class="login-btn" onclick="login()">🔐 ${t.loginBtn}</button>
+                                                    <div id="loginStatus"></div>
+                                                    <div style="margin-top: 20px;">
+                                                        <a href="/forgot-password?lang=${lang}" style="color: #ffeb3b; text-decoration: none; margin: 10px;">🔑 ${t.forgotPassword}</a>
+                                                        <br>
+                                                            <a href="/register?lang=${lang}" style="color: #4caf50; text-decoration: none; margin: 10px;">📝 ${t.createAccount}</a>
+                                                    </div>
+                                                    <p style="font-size: 12px; opacity: 0.8; margin-top: 15px;">
+                                                        💡 ${t.demoAccount}
+                                                    </p>
+                                                </div>
+                                                <a href="/?lang=${lang}" class="back-btn">${t.backHome}</a>
+                                        </div>
+                                        <script>
+                                            async function login() {
                 const email = document.getElementById('emailInput').value;
-                const password = document.getElementById('passwordInput').value;
-                const statusDiv = document.getElementById('loginStatus');
-                
-                if (!email) {
-                    statusDiv.innerHTML = '<p class="error">يرجى إدخال البريد الإلكتروني</p>';
-                    return;
+                                            const password = document.getElementById('passwordInput').value;
+                                            const statusDiv = document.getElementById('loginStatus');
+
+                                            if (!email) {
+                                                statusDiv.innerHTML = '<p class="error">يرجى إدخال البريد الإلكتروني</p>';
+                                            return;
                 }
-                
-                if (!password) {
-                    statusDiv.innerHTML = '<p class="error">يرجى إدخال كلمة المرور</p>';
-                    return;
+
+                                            if (!password) {
+                                                statusDiv.innerHTML = '<p class="error">يرجى إدخال كلمة المرور</p>';
+                                            return;
                 }
-                
-                statusDiv.innerHTML = '<p>جاري تسجيل الدخول...</p>';
-                
-                try {
+
+                                            statusDiv.innerHTML = '<p>جاري تسجيل الدخول...</p>';
+
+                                            try {
                     const response = await fetch('/api/auth/login', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                            email: email,
-                            password: password,
-                            deviceId: 'web-' + Date.now() 
+                                                method: 'POST',
+                                            headers: {'Content-Type': 'application/json' },
+                                            body: JSON.stringify({
+                                                email: email,
+                                            password: password,
+                                            deviceId: 'web-' + Date.now() 
                         })
                     });
-                    
-                    const data = await response.json();
-                    
-                    if (data.success) {
-                        localStorage.setItem('sessionId', data.sessionId);
-                        localStorage.setItem('userEmail', email);
-                        statusDiv.innerHTML = '<p class="success">✅ تم تسجيل الدخول بنجاح!</p>';
+
+                                            const data = await response.json();
+
+                                            if (data.success) {
+                                                localStorage.setItem('sessionId', data.sessionId);
+                                            localStorage.setItem('userEmail', email);
+                                            statusDiv.innerHTML = '<p class="success">✅ تم تسجيل الدخول بنجاح!</p>';
                         setTimeout(() => {
-                            window.location.href = '/dashboard?lang=${lang}';
+                                                window.location.href = '/dashboard?lang=${lang}';
                         }, 1000);
                     } else {
-                        statusDiv.innerHTML = \`<p class="error">❌ \${data.message}</p>\`;
+                                                statusDiv.innerHTML = \`<p class="error">❌ \${data.message}</p>\`;
                     }
                 } catch (error) {
-                    statusDiv.innerHTML = '<p class="error">خطأ في تسجيل الدخول</p>';
+                                                statusDiv.innerHTML = '<p class="error">خطأ في تسجيل الدخول</p>';
                 }
             }
-        </script>
-    </body>
-    </html>
-    `);
+                                        </script>
+                                </body>
+                            </html>
+                            `);
 });
 
 // صفحة إنشاء حساب جديد
 app.get('/register', (req, res) => {
     const lang = req.query.lang || 'ar';
-    const dir = lang === 'ar' ? 'rtl' : 'ltr';
+                            const dir = lang === 'ar' ? 'rtl' : 'ltr';
 
-    res.send(`
-    <!DOCTYPE html>
-    <html lang="${lang}" dir="${dir}">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>إنشاء حساب جديد - نظام مكافحة السرقة</title>
-        <style>
-            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-            .container { background: rgba(255,255,255,0.1); padding: 40px; border-radius: 20px; text-align: center; backdrop-filter: blur(10px); max-width: 400px; }
-            .form-input { width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
-            .register-btn { background: #4caf50; color: white; padding: 15px 30px; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; margin: 10px; transition: all 0.3s; width: 100%; }
-            .register-btn:hover { background: #45a049; }
-            .back-btn { background: rgba(255,255,255,0.2); color: white; padding: 10px 20px; border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; text-decoration: none; display: inline-block; margin: 10px; }
-            .login-link { background: #2196f3; color: white; padding: 10px 20px; border: none; border-radius: 10px; text-decoration: none; display: inline-block; margin: 10px; }
-            .error { color: #ffcdd2; margin: 10px 0; }
-            .success { color: #c8e6c9; margin: 10px 0; }
-            .pin-input { width: 100px; text-align: center; letter-spacing: 5px; font-size: 18px; }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>📝 إنشاء حساب جديد</h1>
-            <p>نظام مكافحة السرقة المتقدم</p>
-            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin: 15px 0; font-size: 14px;">
-                <p>🛡️ <strong>مرحباً بك في نظام الحماية!</strong></p>
-                <p>أنشئ حسابك لحماية جهازك وممتلكاتك بأمان</p>
-                <p style="color: #ffeb3b; font-size: 12px;">⚠️ استخدم النظام بمسؤولية وفقاً للقوانين المحلية</p>
-            </div>
-            <div>
-                <input type="email" class="form-input" id="emailInput" placeholder="البريد الإلكتروني" required>
-                <input type="password" class="form-input" id="passwordInput" placeholder="كلمة المرور" required>
-                <input type="password" class="form-input" id="confirmPasswordInput" placeholder="تأكيد كلمة المرور" required>
-                <input type="password" class="form-input pin-input" id="pinInput" placeholder="PIN" maxlength="4" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
-                <button class="register-btn" onclick="register()">✅ إنشاء الحساب</button>
-                <div id="registerStatus"></div>
-                <p style="font-size: 12px; opacity: 0.8; margin-top: 15px;">
-                    💡 كلمة المرور: 4 أحرف على الأقل<br>
-                    🔐 PIN: 4 أرقام للحماية الإضافية
-                </p>
-            </div>
-            <div>
-                <a href="/login?lang=${lang}" class="login-link">لديك حساب؟ سجل الدخول</a>
-                <a href="/?lang=${lang}" class="back-btn">العودة للصفحة الرئيسية</a>
-            </div>
-        </div>
-        <script>
-            async function register() {
+                            res.send(`
+                            <!DOCTYPE html>
+                            <html lang="${lang}" dir="${dir}">
+                                <head>
+                                    <meta charset="UTF-8">
+                                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                            <title>إنشاء حساب جديد - نظام مكافحة السرقة</title>
+                                            <style>
+                                                body {font - family: Arial, sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+                                                .container {background: rgba(255,255,255,0.1); padding: 40px; border-radius: 20px; text-align: center; backdrop-filter: blur(10px); max-width: 400px; }
+                                                .form-input {width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
+                                                .register-btn {background: #4caf50; color: white; padding: 15px 30px; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; margin: 10px; transition: all 0.3s; width: 100%; }
+                                                .register-btn:hover {background: #45a049; }
+                                                .back-btn {background: rgba(255,255,255,0.2); color: white; padding: 10px 20px; border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; text-decoration: none; display: inline-block; margin: 10px; }
+                                                .login-link {background: #2196f3; color: white; padding: 10px 20px; border: none; border-radius: 10px; text-decoration: none; display: inline-block; margin: 10px; }
+                                                .error {color: #ffcdd2; margin: 10px 0; }
+                                                .success {color: #c8e6c9; margin: 10px 0; }
+                                                .pin-input {width: 100px; text-align: center; letter-spacing: 5px; font-size: 18px; }
+                                            </style>
+                                        </head>
+                                        <body>
+                                            <div class="container">
+                                                <h1>📝 إنشاء حساب جديد</h1>
+                                                <p>نظام مكافحة السرقة المتقدم</p>
+                                                <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin: 15px 0; font-size: 14px;">
+                                                    <p>🛡️ <strong>مرحباً بك في نظام الحماية!</strong></p>
+                                                    <p>أنشئ حسابك لحماية جهازك وممتلكاتك بأمان</p>
+                                                    <p style="color: #ffeb3b; font-size: 12px;">⚠️ استخدم النظام بمسؤولية وفقاً للقوانين المحلية</p>
+                                                </div>
+                                                <div>
+                                                    <input type="email" class="form-input" id="emailInput" placeholder="البريد الإلكتروني" required>
+                                                        <input type="password" class="form-input" id="passwordInput" placeholder="كلمة المرور" required>
+                                                            <input type="password" class="form-input" id="confirmPasswordInput" placeholder="تأكيد كلمة المرور" required>
+                                                                <input type="password" class="form-input pin-input" id="pinInput" placeholder="PIN" maxlength="4" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
+                                                                    <button class="register-btn" onclick="register()">✅ إنشاء الحساب</button>
+                                                                    <div id="registerStatus"></div>
+                                                                    <p style="font-size: 12px; opacity: 0.8; margin-top: 15px;">
+                                                                        💡 كلمة المرور: 4 أحرف على الأقل<br>
+                                                                            🔐 PIN: 4 أرقام للحماية الإضافية
+                                                                    </p>
+                                                                </div>
+                                                                <div>
+                                                                    <a href="/login?lang=${lang}" class="login-link">لديك حساب؟ سجل الدخول</a>
+                                                                    <a href="/?lang=${lang}" class="back-btn">العودة للصفحة الرئيسية</a>
+                                                                </div>
+                                                            </div>
+                                                            <script>
+                                                                async function register() {
                 const email = document.getElementById('emailInput').value;
-                const password = document.getElementById('passwordInput').value;
-                const confirmPassword = document.getElementById('confirmPasswordInput').value;
-                const pin = document.getElementById('pinInput').value;
-                const statusDiv = document.getElementById('registerStatus');
-                
-                if (!email || !password || !confirmPassword || !pin) {
-                    statusDiv.innerHTML = '<p class="error">جميع الحقول مطلوبة</p>';
-                    return;
+                                                                const password = document.getElementById('passwordInput').value;
+                                                                const confirmPassword = document.getElementById('confirmPasswordInput').value;
+                                                                const pin = document.getElementById('pinInput').value;
+                                                                const statusDiv = document.getElementById('registerStatus');
+
+                                                                if (!email || !password || !confirmPassword || !pin) {
+                                                                    statusDiv.innerHTML = '<p class="error">جميع الحقول مطلوبة</p>';
+                                                                return;
                 }
-                
-                statusDiv.innerHTML = '<p>جاري إنشاء الحساب...</p>';
-                
-                try {
+
+                                                                statusDiv.innerHTML = '<p>جاري إنشاء الحساب...</p>';
+
+                                                                try {
                     const response = await fetch('/api/auth/register', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                            email: email,
-                            password: password,
-                            confirmPassword: confirmPassword,
-                            pin: pin
+                                                                    method: 'POST',
+                                                                headers: {'Content-Type': 'application/json' },
+                                                                body: JSON.stringify({
+                                                                    email: email,
+                                                                password: password,
+                                                                confirmPassword: confirmPassword,
+                                                                pin: pin
                         })
                     });
-                    
-                    const data = await response.json();
-                    
-                    if (data.success) {
-                        statusDiv.innerHTML = '<p class="success">✅ تم إنشاء الحساب بنجاح!</p>';
+
+                                                                const data = await response.json();
+
+                                                                if (data.success) {
+                                                                    statusDiv.innerHTML = '<p class="success">✅ تم إنشاء الحساب بنجاح!</p>';
                         setTimeout(() => {
-                            window.location.href = '/login?lang=${lang}';
+                                                                    window.location.href = '/login?lang=${lang}';
                         }, 2000);
                     } else {
-                        statusDiv.innerHTML = \`<p class="error">❌ \${data.message}</p>\`;
+                                                                    statusDiv.innerHTML = \`<p class="error">❌ \${data.message}</p>\`;
                     }
                 } catch (error) {
-                    statusDiv.innerHTML = '<p class="error">خطأ في إنشاء الحساب</p>';
+                                                                    statusDiv.innerHTML = '<p class="error">خطأ في إنشاء الحساب</p>';
                 }
             }
-        </script>
-    </body>
-    </html>
-    `);
+                                                            </script>
+                                                        </body>
+                                                    </html>
+                                                    `);
 });
 
 // صفحة نسيت كلمة المرور
 app.get('/forgot-password', (req, res) => {
     const lang = req.query.lang || 'ar';
-    const dir = lang === 'ar' ? 'rtl' : 'ltr';
+                                                    const dir = lang === 'ar' ? 'rtl' : 'ltr';
 
-    res.send(`
-    <!DOCTYPE html>
-    <html lang="${lang}" dir="${dir}">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>نسيت كلمة المرور - نظام مكافحة السرقة</title>
-        <style>
-            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-            .container { background: rgba(255,255,255,0.1); padding: 40px; border-radius: 20px; text-align: center; backdrop-filter: blur(10px); max-width: 400px; }
-            .form-input { width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
-            .btn { background: #ff9800; color: white; padding: 15px 30px; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; margin: 10px; transition: all 0.3s; width: 100%; }
-            .btn:hover { background: #f57c00; }
-            .reset-btn { background: #4caf50; }
-            .reset-btn:hover { background: #45a049; }
-            .back-btn { background: rgba(255,255,255,0.2); color: white; padding: 10px 20px; border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; text-decoration: none; display: inline-block; margin: 10px; }
-            .error { color: #ffcdd2; margin: 10px 0; }
-            .success { color: #c8e6c9; margin: 10px 0; }
-            .info { color: #b3e5fc; margin: 10px 0; }
-            .hidden { display: none; }
-            .pin-display { background: rgba(255,255,255,0.2); padding: 15px; border-radius: 10px; margin: 10px 0; font-size: 18px; letter-spacing: 3px; }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>🔑 نسيت كلمة المرور</h1>
-            <p>نظام مكافحة السرقة</p>
-            
-            <!-- مرحلة طلب إعادة التعيين -->
-            <div id="requestStep">
-                <input type="email" class="form-input" id="emailInput" placeholder="البريد الإلكتروني" required>
-                <button class="btn" onclick="requestReset()">📧 إرسال رمز إعادة التعيين</button>
-                <div id="requestStatus"></div>
-            </div>
-            
-            <!-- مرحلة إعادة التعيين -->
-            <div id="resetStep" class="hidden">
-                <div class="info">
-                    <p>📧 تم إرسال رمز إعادة التعيين</p>
-                    <p style="font-size: 14px; color: #666;">تحقق من بريدك الإلكتروني (بما في ذلك مجلد الرسائل غير المرغوب فيها)</p>
-                    <div class="pin-display">
-                        <strong>رمز إعادة التعيين: <span id="resetTokenDisplay">تحقق من إيميلك</span></strong>
-                    </div>
-                    <div class="pin-display">
-                        <strong>PIN الخاص بك: <span id="pinDisplay">موجود في الإيميل</span></strong>
-                    </div>
-                </div>
-                <input type="text" class="form-input" id="resetTokenInput" placeholder="رمز إعادة التعيين" required>
-                <input type="password" class="form-input" id="newPasswordInput" placeholder="كلمة المرور الجديدة" required>
-                <input type="password" class="form-input" id="confirmNewPasswordInput" placeholder="تأكيد كلمة المرور الجديدة" required>
-                <button class="btn reset-btn" onclick="resetPassword()">🔄 تغيير كلمة المرور</button>
-                <div id="resetStatus"></div>
-            </div>
-            
-            <div>
-                <a href="/login?lang=${lang}" class="back-btn">العودة لتسجيل الدخول</a>
-            </div>
-        </div>
-        <script>
-            let currentEmail = '';
-            
-            async function requestReset() {
+                                                    res.send(`
+                                                    <!DOCTYPE html>
+                                                    <html lang="${lang}" dir="${dir}">
+                                                        <head>
+                                                            <meta charset="UTF-8">
+                                                                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                                                    <title>نسيت كلمة المرور - نظام مكافحة السرقة</title>
+                                                                    <style>
+                                                                        body {font - family: Arial, sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+                                                                        .container {background: rgba(255,255,255,0.1); padding: 40px; border-radius: 20px; text-align: center; backdrop-filter: blur(10px); max-width: 400px; }
+                                                                        .form-input {width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
+                                                                        .btn {background: #ff9800; color: white; padding: 15px 30px; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; margin: 10px; transition: all 0.3s; width: 100%; }
+                                                                        .btn:hover {background: #f57c00; }
+                                                                        .reset-btn {background: #4caf50; }
+                                                                        .reset-btn:hover {background: #45a049; }
+                                                                        .back-btn {background: rgba(255,255,255,0.2); color: white; padding: 10px 20px; border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; text-decoration: none; display: inline-block; margin: 10px; }
+                                                                        .error {color: #ffcdd2; margin: 10px 0; }
+                                                                        .success {color: #c8e6c9; margin: 10px 0; }
+                                                                        .info {color: #b3e5fc; margin: 10px 0; }
+                                                                        .hidden {display: none; }
+                                                                        .pin-display {background: rgba(255,255,255,0.2); padding: 15px; border-radius: 10px; margin: 10px 0; font-size: 18px; letter-spacing: 3px; }
+                                                                    </style>
+                                                                </head>
+                                                                <body>
+                                                                    <div class="container">
+                                                                        <h1>🔑 نسيت كلمة المرور</h1>
+                                                                        <p>نظام مكافحة السرقة</p>
+
+                                                                        <!-- مرحلة طلب إعادة التعيين -->
+                                                                        <div id="requestStep">
+                                                                            <input type="email" class="form-input" id="emailInput" placeholder="البريد الإلكتروني" required>
+                                                                                <button class="btn" onclick="requestReset()">📧 إرسال رمز إعادة التعيين</button>
+                                                                                <div id="requestStatus"></div>
+                                                                        </div>
+
+                                                                        <!-- مرحلة إعادة التعيين -->
+                                                                        <div id="resetStep" class="hidden">
+                                                                            <div class="info">
+                                                                                <p>📧 تم إرسال رمز إعادة التعيين</p>
+                                                                                <p style="font-size: 14px; color: #666;">تحقق من بريدك الإلكتروني (بما في ذلك مجلد الرسائل غير المرغوب فيها)</p>
+                                                                                <div class="pin-display">
+                                                                                    <strong>رمز إعادة التعيين: <span id="resetTokenDisplay">تحقق من إيميلك</span></strong>
+                                                                                </div>
+                                                                                <div class="pin-display">
+                                                                                    <strong>PIN الخاص بك: <span id="pinDisplay">موجود في الإيميل</span></strong>
+                                                                                </div>
+                                                                            </div>
+                                                                            <input type="text" class="form-input" id="resetTokenInput" placeholder="رمز إعادة التعيين" required>
+                                                                                <input type="password" class="form-input" id="newPasswordInput" placeholder="كلمة المرور الجديدة" required>
+                                                                                    <input type="password" class="form-input" id="confirmNewPasswordInput" placeholder="تأكيد كلمة المرور الجديدة" required>
+                                                                                        <button class="btn reset-btn" onclick="resetPassword()">🔄 تغيير كلمة المرور</button>
+                                                                                        <div id="resetStatus"></div>
+                                                                                    </div>
+
+                                                                                    <div>
+                                                                                        <a href="/login?lang=${lang}" class="back-btn">العودة لتسجيل الدخول</a>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <script>
+                                                                                    let currentEmail = '';
+
+                                                                                    async function requestReset() {
                 const email = document.getElementById('emailInput').value;
-                const statusDiv = document.getElementById('requestStatus');
-                
-                if (!email) {
-                    statusDiv.innerHTML = '<p class="error">البريد الإلكتروني مطلوب</p>';
-                    return;
+                                                                                    const statusDiv = document.getElementById('requestStatus');
+
+                                                                                    if (!email) {
+                                                                                        statusDiv.innerHTML = '<p class="error">البريد الإلكتروني مطلوب</p>';
+                                                                                    return;
                 }
-                
-                currentEmail = email;
-                statusDiv.innerHTML = '<p>جاري إرسال رمز إعادة التعيين...</p>';
-                
-                try {
+
+                                                                                    currentEmail = email;
+                                                                                    statusDiv.innerHTML = '<p>جاري إرسال رمز إعادة التعيين...</p>';
+
+                                                                                    try {
                     const response = await fetch('/api/auth/forgot-password', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email: email })
+                                                                                        method: 'POST',
+                                                                                    headers: {'Content-Type': 'application/json' },
+                                                                                    body: JSON.stringify({email: email })
                     });
-                    
-                    const data = await response.json();
-                    
-                    if (data.success) {
+
+                                                                                    const data = await response.json();
+
+                                                                                    if (data.success) {
                         if (data.emailSent) {
-                            statusDiv.innerHTML = '<p class="success">✅ تم إرسال رمز إعادة التعيين إلى بريدك الإلكتروني!</p>';
-                            // إخفاء عرض الرمز على الشاشة لأنه تم إرساله بالإيميل
-                            document.getElementById('resetTokenDisplay').textContent = '****';
-                            document.getElementById('pinDisplay').textContent = '****';
+                                                                                        statusDiv.innerHTML = '<p class="success">✅ تم إرسال رمز إعادة التعيين إلى بريدك الإلكتروني!</p>';
+                                                                                    // إخفاء عرض الرمز على الشاشة لأنه تم إرساله بالإيميل
+                                                                                    document.getElementById('resetTokenDisplay').textContent = '****';
+                                                                                    document.getElementById('pinDisplay').textContent = '****';
                         } else {
-                            statusDiv.innerHTML = '<p class="success">✅ تعذر إرسال الإيميل، إليك الرمز مباشرة:</p>';
-                            document.getElementById('resetTokenDisplay').textContent = data.resetToken;
-                            document.getElementById('pinDisplay').textContent = data.pin;
+                                                                                        statusDiv.innerHTML = '<p class="success">✅ تعذر إرسال الإيميل، إليك الرمز مباشرة:</p>';
+                                                                                    document.getElementById('resetTokenDisplay').textContent = data.resetToken;
+                                                                                    document.getElementById('pinDisplay').textContent = data.pin;
                         }
-                        document.getElementById('requestStep').classList.add('hidden');
-                        document.getElementById('resetStep').classList.remove('hidden');
+                                                                                    document.getElementById('requestStep').classList.add('hidden');
+                                                                                    document.getElementById('resetStep').classList.remove('hidden');
                     } else {
-                        statusDiv.innerHTML = \`<p class="error">❌ \${data.message}</p>\`;
+                                                                                        statusDiv.innerHTML = \`<p class="error">❌ \${data.message}</p>\`;
                     }
                 } catch (error) {
-                    statusDiv.innerHTML = '<p class="error">خطأ في إرسال رمز إعادة التعيين</p>';
+                                                                                        statusDiv.innerHTML = '<p class="error">خطأ في إرسال رمز إعادة التعيين</p>';
                 }
             }
-            
-            async function resetPassword() {
+
+                                                                                    async function resetPassword() {
                 const resetToken = document.getElementById('resetTokenInput').value;
-                const newPassword = document.getElementById('newPasswordInput').value;
-                const confirmNewPassword = document.getElementById('confirmNewPasswordInput').value;
-                const statusDiv = document.getElementById('resetStatus');
-                
-                if (!resetToken || !newPassword || !confirmNewPassword) {
-                    statusDiv.innerHTML = '<p class="error">جميع الحقول مطلوبة</p>';
-                    return;
+                                                                                    const newPassword = document.getElementById('newPasswordInput').value;
+                                                                                    const confirmNewPassword = document.getElementById('confirmNewPasswordInput').value;
+                                                                                    const statusDiv = document.getElementById('resetStatus');
+
+                                                                                    if (!resetToken || !newPassword || !confirmNewPassword) {
+                                                                                        statusDiv.innerHTML = '<p class="error">جميع الحقول مطلوبة</p>';
+                                                                                    return;
                 }
-                
-                statusDiv.innerHTML = '<p>جاري تغيير كلمة المرور...</p>';
-                
-                try {
+
+                                                                                    statusDiv.innerHTML = '<p>جاري تغيير كلمة المرور...</p>';
+
+                                                                                    try {
                     const response = await fetch('/api/auth/reset-password', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                            email: currentEmail,
-                            resetToken: resetToken,
-                            newPassword: newPassword,
-                            confirmPassword: confirmNewPassword
+                                                                                        method: 'POST',
+                                                                                    headers: {'Content-Type': 'application/json' },
+                                                                                    body: JSON.stringify({
+                                                                                        email: currentEmail,
+                                                                                    resetToken: resetToken,
+                                                                                    newPassword: newPassword,
+                                                                                    confirmPassword: confirmNewPassword
                         })
                     });
-                    
-                    const data = await response.json();
-                    
-                    if (data.success) {
-                        statusDiv.innerHTML = '<p class="success">✅ تم تغيير كلمة المرور بنجاح!</p>';
+
+                                                                                    const data = await response.json();
+
+                                                                                    if (data.success) {
+                                                                                        statusDiv.innerHTML = '<p class="success">✅ تم تغيير كلمة المرور بنجاح!</p>';
                         setTimeout(() => {
-                            window.location.href = '/login?lang=${lang}';
+                                                                                        window.location.href = '/login?lang=${lang}';
                         }, 2000);
                     } else {
-                        statusDiv.innerHTML = \`<p class="error">❌ \${data.message}</p>\`;
+                                                                                        statusDiv.innerHTML = \`<p class="error">❌ \${data.message}</p>\`;
                     }
                 } catch (error) {
-                    statusDiv.innerHTML = '<p class="error">خطأ في تغيير كلمة المرور</p>';
+                                                                                        statusDiv.innerHTML = '<p class="error">خطأ في تغيير كلمة المرور</p>';
                 }
             }
-        </script>
-    </body>
-    </html>
-    `);
+                                                                                </script>
+                                                                            </body>
+                                                                        </html>
+                                                                        `);
 });
 
 // إعادة توجيه الروابط القديمة
 app.get('/auth/google', (req, res) => {
-    res.redirect('/login?lang=' + (req.query.lang || 'ar'));
+                                                                            res.redirect('/login?lang=' + (req.query.lang || 'ar'));
 });
 
 app.get('/verify-email', (req, res) => {
-    res.redirect('/dashboard?lang=' + (req.query.lang || 'ar'));
+                                                                            res.redirect('/dashboard?lang=' + (req.query.lang || 'ar'));
 });
 
 app.get('/map', (req, res) => {
-    res.redirect('/dashboard?lang=' + (req.query.lang || 'ar'));
+                                                                            res.redirect('/dashboard?lang=' + (req.query.lang || 'ar'));
 });
 
 app.get('/logout', (req, res) => {
     const lang = req.query.lang || 'ar';
-    res.redirect('/?lang=' + lang);
+                                                                        res.redirect('/?lang=' + lang);
 });
 
 // معالجة الصفحات غير الموجودة
 app.use((req, res) => {
-    res.status(404).send('Page Not Found');
+                                                                            res.status(404).send('Page Not Found');
 });
 
 app.listen(PORT, () => {
-    console.log(`🚀 الخادم يعمل على المنفذ ${PORT}`);
-    console.log(`🌐 الموقع متاح على: http://localhost:${PORT}`);
-    console.log(`🔗 مع دعم اللغات: ?lang=ar أو ?lang=en أو ?lang=el`);
-    console.log(`📱 لوحة التحكم: http://localhost:${PORT}/dashboard`);
+                                                                            console.log(`🚀 الخادم يعمل على المنفذ ${PORT}`);
+                                                                        console.log(`🌐 الموقع متاح على: http://localhost:${PORT}`);
+                                                                        console.log(`🔗 مع دعم اللغات: ?lang=ar أو ?lang=en أو ?lang=el`);
+                                                                        console.log(`📱 لوحة التحكم: http://localhost:${PORT}/dashboard`);
 });
