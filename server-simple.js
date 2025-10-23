@@ -10,6 +10,11 @@ app.use(express.static(__dirname));
 // إضافة middleware للـ JSON
 app.use(express.json());
 
+// قاعدة بيانات مؤقتة في الذاكرة (في الإنتاج ستكون قاعدة بيانات حقيقية)
+let connectedDevices = [];
+let userSessions = {};
+let deviceLocations = {};
+
 // معالجة الطلبات مع دعم اللغات
 app.get('/', (req, res) => {
     try {
@@ -65,18 +70,18 @@ app.get('/api/health', (req, res) => {
     });
 });
 
-// API للإحصائيات
+// API للإحصائيات الحقيقية
 app.get('/api/stats', (req, res) => {
     res.json({
-        protectedDevices: 1247,
-        activeAlerts: 3,
+        protectedDevices: connectedDevices.length,
+        activeAlerts: connectedDevices.filter(d => d.hasAlert).length,
         averageResponseTime: 150,
         language: req.query.lang || 'ar'
     });
 });
 
 // API لحفظ تفضيلات اللغة
-app.post('/api/user/language', express.json(), (req, res) => {
+app.post('/api/user/language', (req, res) => {
     const { language } = req.body;
     console.log(`تم تغيير اللغة إلى: ${language}`);
     res.json({
@@ -86,284 +91,151 @@ app.post('/api/user/language', express.json(), (req, res) => {
     });
 });
 
-// APIs للمميزات
-app.get('/auth/google', (req, res) => {
-    const lang = req.query.lang || 'ar';
-    const translations = {
-        ar: {
-            title: 'تسجيل الدخول بـ Google',
-            subtitle: 'نظام مكافحة السرقة',
-            message: 'يتم توجيهك لتسجيل الدخول بـ Google...',
-            email: 'البريد الإلكتروني',
-            login: 'تسجيل الدخول',
-            back: 'العودة للصفحة الرئيسية'
-        },
-        en: {
-            title: 'Google Login',
-            subtitle: 'Anti-Theft System',
-            message: 'Redirecting to Google Login...',
-            email: 'Email',
-            login: 'Login',
-            back: 'Back to Home'
-        },
-        el: {
-            title: 'Σύνδεση Google',
-            subtitle: 'Σύστημα Κατά της Κλοπής',
-            message: 'Ανακατεύθυνση στη σύνδεση Google...',
-            email: 'Email',
-            login: 'Σύνδεση',
-            back: 'Επιστροφή στην Αρχική'
-        }
+// API لتسجيل الدخول الحقيقي
+app.post('/api/auth/login', (req, res) => {
+    const { email, deviceId } = req.body;
+    
+    // التحقق من الإيميل المسموح
+    if (email !== 'hlia.hlias123@gmail.com') {
+        return res.status(401).json({
+            success: false,
+            message: 'البريد الإلكتروني غير مصرح له بالدخول'
+        });
+    }
+    
+    // إنشاء جلسة جديدة
+    const sessionId = Date.now().toString();
+    userSessions[sessionId] = {
+        email: email,
+        deviceId: deviceId,
+        loginTime: new Date(),
+        isActive: true
     };
     
-    const t = translations[lang] || translations.ar;
-    const dir = lang === 'ar' ? 'rtl' : 'ltr';
-    
-    res.send(`
-    <!DOCTYPE html>
-    <html lang="${lang}" dir="${dir}">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>${t.title}</title>
-        <style>
-            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-            .container { background: rgba(255,255,255,0.1); padding: 40px; border-radius: 20px; text-align: center; backdrop-filter: blur(10px); max-width: 400px; }
-            h1 { margin-bottom: 10px; }
-            .subtitle { opacity: 0.8; margin-bottom: 30px; }
-            .login-form { margin: 30px 0; }
-            input { width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 10px; font-size: 16px; }
-            .google-btn { background: #4285f4; color: white; padding: 15px 30px; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; margin: 10px; transition: all 0.3s; }
-            .google-btn:hover { background: #3367d6; transform: translateY(-2px); }
-            .back-btn { background: rgba(255,255,255,0.2); color: white; padding: 10px 20px; border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; text-decoration: none; display: inline-block; margin-top: 20px; }
-            .back-btn:hover { background: rgba(255,255,255,0.3); }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>🔐 ${t.title}</h1>
-            <p class="subtitle">${t.subtitle}</p>
-            <div class="login-form">
-                <input type="email" placeholder="${t.email}: hlia.hlias123@gmail.com" value="hlia.hlias123@gmail.com" readonly>
-                <button class="google-btn" onclick="simulateLogin()">
-                    🔐 ${t.login}
-                </button>
-            </div>
-            <p>${t.message}</p>
-            <a href="/?lang=${lang}" class="back-btn">${t.back}</a>
-        </div>
-        <script>
-            function simulateLogin() {
-                alert('تم تسجيل الدخول بنجاح بالإيميل: hlia.hlias123@gmail.com');
-                setTimeout(() => {
-                    window.location.href = '/?lang=${lang}';
-                }, 1000);
-            }
-        </script>
-    </body>
-    </html>
-    `);
+    res.json({
+        success: true,
+        sessionId: sessionId,
+        message: 'تم تسجيل الدخول بنجاح',
+        redirectUrl: '/dashboard'
+    });
 });
 
-app.get('/register', (req, res) => {
-    const lang = req.query.lang || 'ar';
-    const translations = {
-        ar: {
-            title: 'إنشاء حساب جديد',
-            subtitle: 'انضم إلى نظام الحماية المتقدم',
-            name: 'الاسم الكامل',
-            email: 'البريد الإلكتروني',
-            password: 'كلمة المرور',
-            confirm: 'تأكيد كلمة المرور',
-            create: 'إنشاء الحساب',
-            back: 'العودة للصفحة الرئيسية'
-        },
-        en: {
-            title: 'Create New Account',
-            subtitle: 'Join Advanced Protection System',
-            name: 'Full Name',
-            email: 'Email',
-            password: 'Password',
-            confirm: 'Confirm Password',
-            create: 'Create Account',
-            back: 'Back to Home'
-        },
-        el: {
-            title: 'Δημιουργία Νέου Λογαριασμού',
-            subtitle: 'Εγγραφή στο Προηγμένο Σύστημα Προστασίας',
-            name: 'Πλήρες Όνομα',
-            email: 'Email',
-            password: 'Κωδικός',
-            confirm: 'Επιβεβαίωση Κωδικού',
-            create: 'Δημιουργία Λογαριασμού',
-            back: 'Επιστροφή στην Αρχική'
-        }
-    };
+// API لتأكيد PIN
+app.post('/api/auth/verify-pin', (req, res) => {
+    const { sessionId, pin } = req.body;
     
-    const t = translations[lang] || translations.ar;
-    const dir = lang === 'ar' ? 'rtl' : 'ltr';
+    if (!userSessions[sessionId]) {
+        return res.status(401).json({
+            success: false,
+            message: 'جلسة غير صالحة'
+        });
+    }
     
-    res.send(`
-    <!DOCTYPE html>
-    <html lang="${lang}" dir="${dir}">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>${t.title}</title>
-        <style>
-            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #4caf50 0%, #45a049 100%); color: white; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-            .container { background: rgba(255,255,255,0.1); padding: 40px; border-radius: 20px; text-align: center; backdrop-filter: blur(10px); max-width: 400px; }
-            h1 { margin-bottom: 10px; }
-            .subtitle { opacity: 0.8; margin-bottom: 30px; }
-            input { width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
-            .create-btn { background: #ff6b6b; color: white; padding: 15px 30px; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; margin: 20px 0; transition: all 0.3s; width: 100%; }
-            .create-btn:hover { background: #ff5252; transform: translateY(-2px); }
-            .back-btn { background: rgba(255,255,255,0.2); color: white; padding: 10px 20px; border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; text-decoration: none; display: inline-block; margin-top: 20px; }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>👤 ${t.title}</h1>
-            <p class="subtitle">${t.subtitle}</p>
-            <form onsubmit="createAccount(event)">
-                <input type="text" placeholder="${t.name}" required>
-                <input type="email" placeholder="${t.email}" required>
-                <input type="password" placeholder="${t.password}" required>
-                <input type="password" placeholder="${t.confirm}" required>
-                <button type="submit" class="create-btn">👤 ${t.create}</button>
-            </form>
-            <a href="/?lang=${lang}" class="back-btn">${t.back}</a>
-        </div>
-        <script>
-            function createAccount(event) {
-                event.preventDefault();
-                alert('تم إنشاء الحساب بنجاح! يرجى تأكيد البريد الإلكتروني.');
-                setTimeout(() => {
-                    window.location.href = '/verify-email?lang=${lang}';
-                }, 1000);
-            }
-        </script>
-    </body>
-    </html>
-    `);
+    // في التطبيق الحقيقي، سيتم التحقق من PIN المحفوظ
+    // هنا نقبل أي PIN مكون من 4 أرقام للعرض
+    if (pin && pin.length === 4 && /^\d{4}$/.test(pin)) {
+        userSessions[sessionId].pinVerified = true;
+        res.json({
+            success: true,
+            message: 'تم تأكيد PIN بنجاح'
+        });
+    } else {
+        res.status(400).json({
+            success: false,
+            message: 'PIN غير صحيح - يجب أن يكون 4 أرقام'
+        });
+    }
 });
 
-app.get('/verify-email', (req, res) => {
-    const lang = req.query.lang || 'ar';
-    const translations = {
-        ar: {
-            title: 'تأكيد البريد الإلكتروني',
-            subtitle: 'تأمين حسابك بخطوة إضافية',
-            message: 'تم إرسال رمز التحقق إلى بريدك الإلكتروني',
-            code: 'رمز التحقق',
-            verify: 'تأكيد',
-            resend: 'إعادة الإرسال',
-            back: 'العودة للصفحة الرئيسية'
-        },
-        en: {
-            title: 'Email Verification',
-            subtitle: 'Secure Your Account',
-            message: 'Verification code sent to your email',
-            code: 'Verification Code',
-            verify: 'Verify',
-            resend: 'Resend Code',
-            back: 'Back to Home'
-        },
-        el: {
-            title: 'Επαλήθευση Email',
-            subtitle: 'Ασφαλίστε τον Λογαριασμό σας',
-            message: 'Κωδικός επαλήθευσης στάλθηκε στο email σας',
-            code: 'Κωδικός Επαλήθευσης',
-            verify: 'Επαλήθευση',
-            resend: 'Επαναποστολή',
-            back: 'Επιστροφή στην Αρχική'
-        }
+// API لتسجيل الجهاز
+app.post('/api/device/register', (req, res) => {
+    const { deviceId, deviceInfo, location } = req.body;
+    
+    // البحث عن الجهاز الموجود
+    const existingDeviceIndex = connectedDevices.findIndex(d => d.deviceId === deviceId);
+    
+    const deviceData = {
+        deviceId: deviceId,
+        deviceInfo: deviceInfo,
+        location: location,
+        lastSeen: new Date(),
+        isOnline: true,
+        hasAlert: false,
+        batteryLevel: deviceInfo?.batteryLevel || 0.85
     };
     
-    const t = translations[lang] || translations.ar;
-    const dir = lang === 'ar' ? 'rtl' : 'ltr';
+    if (existingDeviceIndex >= 0) {
+        // تحديث الجهاز الموجود
+        connectedDevices[existingDeviceIndex] = deviceData;
+    } else {
+        // إضافة جهاز جديد
+        connectedDevices.push(deviceData);
+    }
     
-    res.send(`
-    <!DOCTYPE html>
-    <html lang="${lang}" dir="${dir}">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>${t.title}</title>
-        <style>
-            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); color: white; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-            .container { background: rgba(255,255,255,0.1); padding: 40px; border-radius: 20px; text-align: center; backdrop-filter: blur(10px); max-width: 400px; }
-            h1 { margin-bottom: 10px; }
-            .subtitle { opacity: 0.8; margin-bottom: 30px; }
-            .code-input { width: 100%; padding: 20px; margin: 20px 0; border: none; border-radius: 10px; font-size: 24px; text-align: center; letter-spacing: 10px; }
-            .verify-btn { background: #4caf50; color: white; padding: 15px 30px; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; margin: 10px; transition: all 0.3s; }
-            .verify-btn:hover { background: #45a049; transform: translateY(-2px); }
-            .resend-btn { background: rgba(255,255,255,0.2); color: white; padding: 10px 20px; border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; cursor: pointer; margin: 10px; }
-            .back-btn { background: rgba(255,255,255,0.2); color: white; padding: 10px 20px; border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; text-decoration: none; display: inline-block; margin-top: 20px; }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>✉️ ${t.title}</h1>
-            <p class="subtitle">${t.subtitle}</p>
-            <p>${t.message}</p>
-            <p><strong>hlia.hlias123@gmail.com</strong></p>
-            <input type="text" class="code-input" placeholder="123456" maxlength="6">
-            <div>
-                <button class="verify-btn" onclick="verifyEmail()">✅ ${t.verify}</button>
-                <button class="resend-btn" onclick="resendCode()">📧 ${t.resend}</button>
-            </div>
-            <a href="/?lang=${lang}" class="back-btn">${t.back}</a>
-        </div>
-        <script>
-            function verifyEmail() {
-                alert('تم تأكيد البريد الإلكتروني بنجاح!');
-                setTimeout(() => {
-                    window.location.href = '/?lang=${lang}';
-                }, 1000);
-            }
-            function resendCode() {
-                alert('تم إعادة إرسال رمز التحقق إلى بريدك الإلكتروني');
-            }
-        </script>
-    </body>
-    </html>
-    `);
+    // حفظ الموقع
+    deviceLocations[deviceId] = location;
+    
+    res.json({
+        success: true,
+        message: 'تم تسجيل الجهاز بنجاح',
+        deviceCount: connectedDevices.length
+    });
 });
 
-app.get('/map', (req, res) => {
-    const lang = req.query.lang || 'ar';
-    const translations = {
-        ar: {
-            title: 'عرض الخريطة',
-            subtitle: 'تتبع موقع أجهزتك على الخريطة',
-            device: 'الجهاز الرئيسي',
-            location: 'الموقع الحالي',
-            accuracy: 'دقة الموقع',
-            lastUpdate: 'آخر تحديث',
-            back: 'العودة للصفحة الرئيسية'
-        },
-        en: {
-            title: 'Map View',
-            subtitle: 'Track Your Devices Location',
-            device: 'Main Device',
-            location: 'Current Location',
-            accuracy: 'Location Accuracy',
-            lastUpdate: 'Last Update',
-            back: 'Back to Home'
-        },
-        el: {
-            title: 'Προβολή Χάρτη',
-            subtitle: 'Παρακολουθήστε τη Θέση των Συσκευών σας',
-            device: 'Κύρια Συσκευή',
-            location: 'Τρέχουσα Τοποθεσία',
-            accuracy: 'Ακρίβεια Τοποθεσίας',
-            lastUpdate: 'Τελευταία Ενημέρωση',
-            back: 'Επιστροφή στην Αρχική'
-        }
-    };
+// API لتحديث الموقع
+app.post('/api/device/location', (req, res) => {
+    const { deviceId, location } = req.body;
     
-    const t = translations[lang] || translations.ar;
+    // تحديث موقع الجهاز
+    const deviceIndex = connectedDevices.findIndex(d => d.deviceId === deviceId);
+    if (deviceIndex >= 0) {
+        connectedDevices[deviceIndex].location = location;
+        connectedDevices[deviceIndex].lastSeen = new Date();
+        deviceLocations[deviceId] = location;
+        
+        res.json({
+            success: true,
+            message: 'تم تحديث الموقع بنجاح'
+        });
+    } else {
+        res.status(404).json({
+            success: false,
+            message: 'الجهاز غير مسجل'
+        });
+    }
+});
+
+// API للحصول على الأجهزة المتصلة
+app.get('/api/devices', (req, res) => {
+    res.json({
+        success: true,
+        devices: connectedDevices,
+        count: connectedDevices.length
+    });
+});
+
+// API للحصول على موقع جهاز محدد
+app.get('/api/device/:deviceId/location', (req, res) => {
+    const { deviceId } = req.params;
+    const location = deviceLocations[deviceId];
+    
+    if (location) {
+        res.json({
+            success: true,
+            location: location,
+            timestamp: new Date()
+        });
+    } else {
+        res.status(404).json({
+            success: false,
+            message: 'موقع الجهاز غير متوفر'
+        });
+    }
+});
+
+// صفحة لوحة التحكم الحقيقية
+app.get('/dashboard', (req, res) => {
+    const lang = req.query.lang || 'ar';
     const dir = lang === 'ar' ? 'rtl' : 'ltr';
     
     res.send(`
@@ -372,105 +244,176 @@ app.get('/map', (req, res) => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>${t.title}</title>
+        <title>لوحة التحكم - نظام مكافحة السرقة</title>
         <style>
-            body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f0f0f0; }
-            .header { background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%); color: white; padding: 20px; text-align: center; }
-            .map-container { height: 400px; background: linear-gradient(45deg, #4caf50, #2196f3); margin: 20px; border-radius: 15px; position: relative; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; }
-            .device-info { background: white; margin: 20px; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-            .info-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
-            .info-item:last-child { border-bottom: none; }
-            .status-online { color: #4caf50; font-weight: bold; }
-            .back-btn { background: #667eea; color: white; padding: 15px 30px; border: none; border-radius: 10px; text-decoration: none; display: inline-block; margin: 20px; transition: all 0.3s; }
-            .back-btn:hover { background: #5a67d8; transform: translateY(-2px); }
-            .map-marker { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 48px; animation: pulse 2s infinite; }
-            @keyframes pulse { 0% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.1); } 100% { transform: translate(-50%, -50%) scale(1); } }
+            body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
+            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; }
+            .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+            .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 20px 0; }
+            .stat-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; }
+            .stat-number { font-size: 2rem; font-weight: bold; color: #667eea; }
+            .devices-section { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin: 20px 0; }
+            .device-item { padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+            .device-status { padding: 5px 10px; border-radius: 15px; color: white; font-size: 12px; }
+            .online { background: #4caf50; }
+            .offline { background: #f44336; }
+            .pin-section { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin: 20px 0; text-align: center; }
+            .pin-input { padding: 15px; font-size: 24px; text-align: center; letter-spacing: 10px; border: 2px solid #ddd; border-radius: 10px; margin: 10px; width: 200px; }
+            .btn { padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
+            .btn:hover { background: #5a67d8; }
+            .map-section { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin: 20px 0; }
+            .map-placeholder { height: 300px; background: linear-gradient(45deg, #4caf50, #2196f3); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; }
         </style>
     </head>
     <body>
         <div class="header">
-            <h1>🗺️ ${t.title}</h1>
-            <p>${t.subtitle}</p>
-        </div>
-        
-        <div class="map-container">
-            <div class="map-marker">📍</div>
-            <div style="position: absolute; bottom: 20px; background: rgba(0,0,0,0.7); padding: 10px 20px; border-radius: 20px;">
-                الرياض، المملكة العربية السعودية
+            <div class="container">
+                <h1>🛡️ لوحة التحكم - نظام مكافحة السرقة</h1>
+                <p>مرحباً hlia.hlias123@gmail.com</p>
             </div>
         </div>
         
-        <div class="device-info">
-            <h3>📱 ${t.device}</h3>
-            <div class="info-item">
-                <span>${t.location}:</span>
-                <span class="status-online">الرياض، السعودية</span>
+        <div class="container">
+            <!-- إحصائيات حقيقية -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="deviceCount">0</div>
+                    <div>الأجهزة المتصلة</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="alertCount">0</div>
+                    <div>التنبيهات النشطة</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">150ms</div>
+                    <div>زمن الاستجابة</div>
+                </div>
             </div>
-            <div class="info-item">
-                <span>الإحداثيات:</span>
-                <span>24.7136° N, 46.6753° E</span>
+            
+            <!-- تأكيد PIN -->
+            <div class="pin-section">
+                <h3>🔐 تأكيد هويتك بـ PIN</h3>
+                <p>أدخل PIN المكون من 4 أرقام لتأكيد أنك صاحب التطبيق</p>
+                <input type="password" class="pin-input" id="pinInput" placeholder="****" maxlength="4">
+                <br>
+                <button class="btn" onclick="verifyPIN()">تأكيد PIN</button>
+                <div id="pinStatus"></div>
             </div>
-            <div class="info-item">
-                <span>${t.accuracy}:</span>
-                <span class="status-online">±5 متر</span>
+            
+            <!-- الأجهزة المتصلة -->
+            <div class="devices-section">
+                <h3>📱 الأجهزة المتصلة</h3>
+                <div id="devicesList">
+                    <p>جاري تحميل الأجهزة...</p>
+                </div>
             </div>
-            <div class="info-item">
-                <span>مستوى البطارية:</span>
-                <span class="status-online">85%</span>
+            
+            <!-- الخريطة الحقيقية -->
+            <div class="map-section">
+                <h3>🗺️ الخريطة المباشرة</h3>
+                <div class="map-placeholder" id="mapContainer">
+                    <div>
+                        <div style="font-size: 48px; margin-bottom: 10px;">📍</div>
+                        <div>الخريطة ستظهر هنا عند اتصال التطبيق</div>
+                    </div>
+                </div>
             </div>
-            <div class="info-item">
-                <span>${t.lastUpdate}:</span>
-                <span>منذ دقيقتين</span>
-            </div>
-            <div class="info-item">
-                <span>حالة الاتصال:</span>
-                <span class="status-online">متصل</span>
-            </div>
-        </div>
-        
-        <div style="text-align: center;">
-            <a href="/?lang=${lang}" class="back-btn">${t.back}</a>
         </div>
         
         <script>
-            // محاكاة تحديث الموقع
+            let sessionId = localStorage.getItem('sessionId');
+            let isPinVerified = false;
+            
+            // تحديث الإحصائيات
+            async function updateStats() {
+                try {
+                    const response = await fetch('/api/stats');
+                    const data = await response.json();
+                    document.getElementById('deviceCount').textContent = data.protectedDevices;
+                    document.getElementById('alertCount').textContent = data.activeAlerts;
+                } catch (error) {
+                    console.error('خطأ في تحديث الإحصائيات:', error);
+                }
+            }
+            
+            // تحديث قائمة الأجهزة
+            async function updateDevices() {
+                try {
+                    const response = await fetch('/api/devices');
+                    const data = await response.json();
+                    
+                    const devicesList = document.getElementById('devicesList');
+                    if (data.devices && data.devices.length > 0) {
+                        devicesList.innerHTML = data.devices.map(device => \`
+                            <div class="device-item">
+                                <div>
+                                    <strong>📱 \${device.deviceInfo?.model || 'جهاز غير معروف'}</strong><br>
+                                    <small>آخر ظهور: \${new Date(device.lastSeen).toLocaleString('ar-SA')}</small>
+                                </div>
+                                <div>
+                                    <span class="device-status \${device.isOnline ? 'online' : 'offline'}">
+                                        \${device.isOnline ? 'متصل' : 'غير متصل'}
+                                    </span>
+                                </div>
+                            </div>
+                        \`).join('');
+                    } else {
+                        devicesList.innerHTML = '<p>لا توجد أجهزة متصلة حالياً</p>';
+                    }
+                } catch (error) {
+                    console.error('خطأ في تحديث الأجهزة:', error);
+                }
+            }
+            
+            // تأكيد PIN
+            async function verifyPIN() {
+                const pin = document.getElementById('pinInput').value;
+                const statusDiv = document.getElementById('pinStatus');
+                
+                if (!pin || pin.length !== 4) {
+                    statusDiv.innerHTML = '<p style="color: red;">يرجى إدخال PIN مكون من 4 أرقام</p>';
+                    return;
+                }
+                
+                try {
+                    const response = await fetch('/api/auth/verify-pin', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ sessionId: sessionId, pin: pin })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        isPinVerified = true;
+                        statusDiv.innerHTML = '<p style="color: green;">✅ تم تأكيد PIN بنجاح!</p>';
+                        document.querySelector('.pin-section').style.background = '#e8f5e8';
+                    } else {
+                        statusDiv.innerHTML = \`<p style="color: red;">❌ \${data.message}</p>\`;
+                    }
+                } catch (error) {
+                    statusDiv.innerHTML = '<p style="color: red;">خطأ في التحقق من PIN</p>';
+                }
+            }
+            
+            // تحديث البيانات كل 5 ثوان
             setInterval(() => {
-                const marker = document.querySelector('.map-marker');
-                marker.style.animation = 'none';
-                setTimeout(() => {
-                    marker.style.animation = 'pulse 2s infinite';
-                }, 100);
+                updateStats();
+                updateDevices();
             }, 5000);
+            
+            // تحديث أولي
+            updateStats();
+            updateDevices();
         </script>
     </body>
     </html>
     `);
 });
 
-app.get('/logout', (req, res) => {
+// صفحة تسجيل الدخول الحقيقية
+app.get('/auth/google', (req, res) => {
     const lang = req.query.lang || 'ar';
-    const translations = {
-        ar: {
-            title: 'تسجيل الخروج',
-            message: 'تم تسجيل الخروج بنجاح',
-            subtitle: 'شكراً لاستخدام نظام مكافحة السرقة',
-            back: 'العودة للصفحة الرئيسية'
-        },
-        en: {
-            title: 'Logout',
-            message: 'Successfully Logged Out',
-            subtitle: 'Thank you for using Anti-Theft System',
-            back: 'Back to Home'
-        },
-        el: {
-            title: 'Αποσύνδεση',
-            message: 'Επιτυχής Αποσύνδεση',
-            subtitle: 'Ευχαριστούμε που χρησιμοποιήσατε το Σύστημα Κατά της Κλοπής',
-            back: 'Επιστροφή στην Αρχική'
-        }
-    };
-    
-    const t = translations[lang] || translations.ar;
     const dir = lang === 'ar' ? 'rtl' : 'ltr';
     
     res.send(`
@@ -479,33 +422,86 @@ app.get('/logout', (req, res) => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>${t.title}</title>
+        <title>تسجيل الدخول - نظام مكافحة السرقة</title>
         <style>
-            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%); color: white; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
             .container { background: rgba(255,255,255,0.1); padding: 40px; border-radius: 20px; text-align: center; backdrop-filter: blur(10px); max-width: 400px; }
-            h1 { margin-bottom: 20px; }
-            .subtitle { opacity: 0.8; margin-bottom: 30px; }
-            .success-icon { font-size: 64px; margin: 20px 0; }
-            .back-btn { background: rgba(255,255,255,0.2); color: white; padding: 15px 30px; border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; text-decoration: none; display: inline-block; margin-top: 20px; transition: all 0.3s; }
-            .back-btn:hover { background: rgba(255,255,255,0.3); transform: translateY(-2px); }
+            .email-input { width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
+            .login-btn { background: #4285f4; color: white; padding: 15px 30px; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; margin: 10px; transition: all 0.3s; width: 100%; }
+            .login-btn:hover { background: #3367d6; }
+            .back-btn { background: rgba(255,255,255,0.2); color: white; padding: 10px 20px; border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; text-decoration: none; display: inline-block; margin-top: 20px; }
+            .error { color: #ffcdd2; margin: 10px 0; }
+            .success { color: #c8e6c9; margin: 10px 0; }
         </style>
     </head>
     <body>
         <div class="container">
-            <div class="success-icon">🚪</div>
-            <h1>${t.title}</h1>
-            <h2>${t.message}</h2>
-            <p class="subtitle">${t.subtitle}</p>
-            <a href="/?lang=${lang}" class="back-btn">${t.back}</a>
+            <h1>🔐 تسجيل الدخول</h1>
+            <p>نظام مكافحة السرقة</p>
+            <div>
+                <input type="email" class="email-input" id="emailInput" placeholder="البريد الإلكتروني" value="hlia.hlias123@gmail.com">
+                <button class="login-btn" onclick="login()">🔐 تسجيل الدخول</button>
+                <div id="loginStatus"></div>
+            </div>
+            <a href="/?lang=${lang}" class="back-btn">العودة للصفحة الرئيسية</a>
         </div>
         <script>
-            setTimeout(() => {
-                window.location.href = '/?lang=${lang}';
-            }, 3000);
+            async function login() {
+                const email = document.getElementById('emailInput').value;
+                const statusDiv = document.getElementById('loginStatus');
+                
+                if (!email) {
+                    statusDiv.innerHTML = '<p class="error">يرجى إدخال البريد الإلكتروني</p>';
+                    return;
+                }
+                
+                try {
+                    const response = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            email: email, 
+                            deviceId: 'web-' + Date.now() 
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        localStorage.setItem('sessionId', data.sessionId);
+                        statusDiv.innerHTML = '<p class="success">✅ تم تسجيل الدخول بنجاح!</p>';
+                        setTimeout(() => {
+                            window.location.href = '/dashboard?lang=${lang}';
+                        }, 1000);
+                    } else {
+                        statusDiv.innerHTML = \`<p class="error">❌ \${data.message}</p>\`;
+                    }
+                } catch (error) {
+                    statusDiv.innerHTML = '<p class="error">خطأ في تسجيل الدخول</p>';
+                }
+            }
         </script>
     </body>
     </html>
     `);
+});
+
+// إزالة الصفحات الوهمية الأخرى
+app.get('/register', (req, res) => {
+    res.redirect('/auth/google?lang=' + (req.query.lang || 'ar'));
+});
+
+app.get('/verify-email', (req, res) => {
+    res.redirect('/dashboard?lang=' + (req.query.lang || 'ar'));
+});
+
+app.get('/map', (req, res) => {
+    res.redirect('/dashboard?lang=' + (req.query.lang || 'ar'));
+});
+
+app.get('/logout', (req, res) => {
+    const lang = req.query.lang || 'ar';
+    res.redirect('/?lang=' + lang);
 });
 
 // معالجة الصفحات غير الموجودة
@@ -517,4 +513,5 @@ app.listen(PORT, () => {
     console.log(`🚀 الخادم يعمل على المنفذ ${PORT}`);
     console.log(`🌐 الموقع متاح على: http://localhost:${PORT}`);
     console.log(`🔗 مع دعم اللغات: ?lang=ar أو ?lang=en أو ?lang=el`);
+    console.log(`📱 لوحة التحكم: http://localhost:${PORT}/dashboard`);
 });
