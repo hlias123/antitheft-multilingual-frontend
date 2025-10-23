@@ -94,7 +94,7 @@ app.post('/api/user/language', (req, res) => {
 // API لتسجيل الدخول الحقيقي
 app.post('/api/auth/login', (req, res) => {
     const { email, password, deviceId } = req.body;
-    
+
     // التحقق من الإيميل المسموح
     if (email !== 'hlia.hlias123@gmail.com') {
         return res.status(401).json({
@@ -102,7 +102,7 @@ app.post('/api/auth/login', (req, res) => {
             message: 'البريد الإلكتروني غير مصرح له بالدخول'
         });
     }
-    
+
     // التحقق من كلمة المرور (في الإنتاج ستكون مشفرة)
     if (!password || password.length < 4) {
         return res.status(401).json({
@@ -110,7 +110,7 @@ app.post('/api/auth/login', (req, res) => {
             message: 'كلمة المرور مطلوبة (4 أحرف على الأقل)'
         });
     }
-    
+
     // إنشاء جلسة جديدة
     const sessionId = Date.now().toString();
     userSessions[sessionId] = {
@@ -120,7 +120,7 @@ app.post('/api/auth/login', (req, res) => {
         isActive: true,
         pinVerified: false
     };
-    
+
     res.json({
         success: true,
         sessionId: sessionId,
@@ -132,14 +132,14 @@ app.post('/api/auth/login', (req, res) => {
 // API لتأكيد PIN
 app.post('/api/auth/verify-pin', (req, res) => {
     const { sessionId, pin } = req.body;
-    
+
     if (!userSessions[sessionId]) {
         return res.status(401).json({
             success: false,
             message: 'جلسة غير صالحة'
         });
     }
-    
+
     // في التطبيق الحقيقي، سيتم التحقق من PIN المحفوظ
     // هنا نقبل أي PIN مكون من 4 أرقام للعرض
     if (pin && pin.length === 4 && /^\d{4}$/.test(pin)) {
@@ -159,10 +159,10 @@ app.post('/api/auth/verify-pin', (req, res) => {
 // API لتسجيل الجهاز
 app.post('/api/device/register', (req, res) => {
     const { deviceId, deviceInfo, location } = req.body;
-    
+
     // البحث عن الجهاز الموجود
     const existingDeviceIndex = connectedDevices.findIndex(d => d.deviceId === deviceId);
-    
+
     const deviceData = {
         deviceId: deviceId,
         deviceInfo: deviceInfo,
@@ -172,7 +172,7 @@ app.post('/api/device/register', (req, res) => {
         hasAlert: false,
         batteryLevel: deviceInfo?.batteryLevel || 0.85
     };
-    
+
     if (existingDeviceIndex >= 0) {
         // تحديث الجهاز الموجود
         connectedDevices[existingDeviceIndex] = deviceData;
@@ -180,10 +180,10 @@ app.post('/api/device/register', (req, res) => {
         // إضافة جهاز جديد
         connectedDevices.push(deviceData);
     }
-    
+
     // حفظ الموقع
     deviceLocations[deviceId] = location;
-    
+
     res.json({
         success: true,
         message: 'تم تسجيل الجهاز بنجاح',
@@ -194,14 +194,14 @@ app.post('/api/device/register', (req, res) => {
 // API لتحديث الموقع
 app.post('/api/device/location', (req, res) => {
     const { deviceId, location } = req.body;
-    
+
     // تحديث موقع الجهاز
     const deviceIndex = connectedDevices.findIndex(d => d.deviceId === deviceId);
     if (deviceIndex >= 0) {
         connectedDevices[deviceIndex].location = location;
         connectedDevices[deviceIndex].lastSeen = new Date();
         deviceLocations[deviceId] = location;
-        
+
         res.json({
             success: true,
             message: 'تم تحديث الموقع بنجاح'
@@ -227,7 +227,7 @@ app.get('/api/devices', (req, res) => {
 app.get('/api/device/:deviceId/location', (req, res) => {
     const { deviceId } = req.params;
     const location = deviceLocations[deviceId];
-    
+
     if (location) {
         res.json({
             success: true,
@@ -246,7 +246,7 @@ app.get('/api/device/:deviceId/location', (req, res) => {
 app.get('/dashboard', (req, res) => {
     const lang = req.query.lang || 'ar';
     const dir = lang === 'ar' ? 'rtl' : 'ltr';
-    
+
     res.send(`
     <!DOCTYPE html>
     <html lang="${lang}" dir="${dir}">
@@ -268,6 +268,7 @@ app.get('/dashboard', (req, res) => {
             .offline { background: #f44336; }
             .pin-section { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin: 20px 0; text-align: center; }
             .pin-input { padding: 15px; font-size: 24px; text-align: center; letter-spacing: 10px; border: 2px solid #ddd; border-radius: 10px; margin: 10px; width: 200px; }
+            .pin-input:focus { border-color: #667eea; outline: none; box-shadow: 0 0 10px rgba(102, 126, 234, 0.3); }
             .btn { padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
             .btn:hover { background: #5a67d8; }
             .map-section { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin: 20px 0; }
@@ -303,7 +304,7 @@ app.get('/dashboard', (req, res) => {
             <div class="pin-section">
                 <h3>🔐 تأكيد هويتك بـ PIN</h3>
                 <p>أدخل PIN المكون من 4 أرقام لتأكيد أنك صاحب التطبيق</p>
-                <input type="password" class="pin-input" id="pinInput" placeholder="****" maxlength="4" onkeypress="if(event.key==='Enter') verifyPIN()"
+                <input type="password" class="pin-input" id="pinInput" placeholder="****" maxlength="4" onkeypress="if(event.key==='Enter') verifyPIN()" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                 <br>
                 <button class="btn" onclick="verifyPIN()">تأكيد PIN</button>
                 <div id="pinStatus"></div>
@@ -425,6 +426,9 @@ app.get('/dashboard', (req, res) => {
             // تحديث أولي
             updateStats();
             updateDevices();
+            
+            // تركيز على حقل PIN عند تحميل الصفحة
+            document.getElementById('pinInput').focus();
         </script>
     </body>
     </html>
@@ -435,7 +439,7 @@ app.get('/dashboard', (req, res) => {
 app.get('/login', (req, res) => {
     const lang = req.query.lang || 'ar';
     const dir = lang === 'ar' ? 'rtl' : 'ltr';
-    
+
     res.send(`
     <!DOCTYPE html>
     <html lang="${lang}" dir="${dir}">
