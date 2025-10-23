@@ -47,7 +47,7 @@ async function sendEmail(to, subject, htmlContent) {
         console.log('⚠️ Email not sent - transporter not available');
         return { success: false, error: 'Email service not configured' };
     }
-    
+
     try {
         const mailOptions = {
             from: process.env.EMAIL_USER,
