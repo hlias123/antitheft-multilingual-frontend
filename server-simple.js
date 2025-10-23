@@ -194,93 +194,8 @@ app.post('/api/auth/register', async (req, res) => {
         isActive: true
     };
 
-    // إنشاء إيميل الترحيب
-    const welcomeEmailHTML = \`
-    <!DOCTYPE html>
-    <html dir="rtl" lang="ar">
-    <head>
-        <meta charset="UTF-8">
-        <style>
-            body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
-            .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 10px; padding: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-            .header { text-align: center; color: #4caf50; margin-bottom: 30px; }
-            .welcome-box { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 10px; padding: 30px; text-align: center; margin: 20px 0; }
-            .credentials-box { background: #e8f5e8; border: 2px solid #4caf50; border-radius: 10px; padding: 20px; margin: 20px 0; }
-            .credential-item { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; border-left: 4px solid #4caf50; }
-            .warning { background: #fff3cd; border: 2px solid #ffc107; border-radius: 10px; padding: 20px; margin: 20px 0; }
-            .features { background: #f8f9fa; border-radius: 10px; padding: 20px; margin: 20px 0; }
-            .feature-item { padding: 10px 0; border-bottom: 1px solid #dee2e6; }
-            .footer { text-align: center; color: #666; font-size: 12px; margin-top: 30px; }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="header">
-                <h1>🛡️ نظام مكافحة السرقة</h1>
-            </div>
-            
-            <div class="welcome-box">
-                <h2>🎉 أهلاً وسهلاً بك!</h2>
-                <p>تم إنشاء حسابك بنجاح في نظام مكافحة السرقة المتقدم</p>
-            </div>
-            
-            <p>مرحباً <strong>\${email}</strong>،</p>
-            <p>نرحب بك في نظام مكافحة السرقة المتقدم! تم إنشاء حسابك بنجاح ويمكنك الآن الاستفادة من جميع مميزات النظام.</p>
-            
-            <div class="credentials-box">
-                <h3>📋 بيانات حسابك:</h3>
-                <div class="credential-item">
-                    <strong>📧 البريد الإلكتروني:</strong> \${email}
-                </div>
-                <div class="credential-item">
-                    <strong>🔐 PIN الخاص بك:</strong> \${pin}
-                </div>
-                <div class="credential-item">
-                    <strong>📅 تاريخ الإنشاء:</strong> \${new Date().toLocaleDateString('ar-SA')}
-                </div>
-            </div>
-            
-            <div class="features">
-                <h3>🌟 مميزات النظام:</h3>
-                <div class="feature-item">🔒 حماية متقدمة لجهازك</div>
-                <div class="feature-item">📍 تتبع الموقع في الوقت الفعلي</div>
-                <div class="feature-item">🚨 تنبيهات فورية عند السرقة</div>
-                <div class="feature-item">📱 لوحة تحكم شاملة</div>
-                <div class="feature-item">🌍 دعم متعدد اللغات</div>
-            </div>
-            
-            <div class="warning">
-                <h3>⚠️ تحذير قانوني مهم:</h3>
-                <p>نحن غير مسؤولين عن أي استخدام غير قانوني لهذا البرنامج. يجب استخدام النظام فقط لحماية ممتلكاتك الشخصية وبما يتوافق مع القوانين المحلية.</p>
-                <ul>
-                    <li>✅ استخدم النظام بمسؤولية</li>
-                    <li>✅ احترم خصوصية الآخرين</li>
-                    <li>✅ اتبع القوانين المحلية</li>
-                </ul>
-            </div>
-            
-            <p><strong>الخطوات التالية:</strong></p>
-            <ol>
-                <li>سجل الدخول باستخدام بريدك الإلكتروني وكلمة المرور</li>
-                <li>أدخل PIN الخاص بك للتأكيد</li>
-                <li>ابدأ في حماية جهازك</li>
-            </ol>
-            
-            <div class="footer">
-                <p>شكراً لاختيارك نظام مكافحة السرقة</p>
-                <p>هذا إيميل تلقائي - لا ترد عليه</p>
-            </div>
-        </div>
-    </body>
-    </html>
-    \`;
-
-    // إرسال إيميل الترحيب
-    const emailResult = await sendEmail(
-        email,
-        '🎉 مرحباً بك في نظام مكافحة السرقة - تم إنشاء حسابك بنجاح',
-        welcomeEmailHTML
-    );
+    // تعطيل إرسال إيميل الترحيب مؤقتاً
+    const emailResult = { success: false, error: 'Email service disabled' };
 
     res.json({
         success: true,
@@ -408,76 +323,8 @@ app.post('/api/auth/forgot-password', async (req, res) => {
         expiresAt: new Date(Date.now() + 15 * 60 * 1000) // 15 دقيقة
     };
 
-    // إنشاء محتوى الإيميل
-    const emailHTML = \`
-    <!DOCTYPE html>
-    <html dir="rtl" lang="ar">
-    <head>
-        <meta charset="UTF-8">
-        <style>
-            body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
-            .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 10px; padding: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-            .header { text-align: center; color: #667eea; margin-bottom: 30px; }
-            .token-box { background: #e8f5e8; border: 2px solid #4caf50; border-radius: 10px; padding: 20px; text-align: center; margin: 20px 0; }
-            .token { font-size: 32px; font-weight: bold; color: #4caf50; letter-spacing: 5px; }
-            .pin-box { background: #fff3cd; border: 2px solid #ffc107; border-radius: 10px; padding: 20px; text-align: center; margin: 20px 0; }
-            .pin { font-size: 24px; font-weight: bold; color: #856404; letter-spacing: 3px; }
-            .warning { background: #ffebee; border-left: 4px solid #f44336; padding: 15px; margin: 20px 0; }
-            .footer { text-align: center; color: #666; font-size: 12px; margin-top: 30px; }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="header">
-                <h1>🛡️ نظام مكافحة السرقة</h1>
-                <h2>إعادة تعيين كلمة المرور</h2>
-            </div>
-            
-            <p>مرحباً،</p>
-            <p>تم طلب إعادة تعيين كلمة المرور لحسابك. استخدم الرمز التالي لإعادة تعيين كلمة المرور:</p>
-            
-            <div class="token-box">
-                <p><strong>رمز إعادة التعيين:</strong></p>
-                <div class="token">\${resetToken}</div>
-            </div>
-            
-            <div class="pin-box">
-                <p><strong>PIN الخاص بك للمرجع:</strong></p>
-                <div class="pin">\${registeredUsers[email].pin}</div>
-            </div>
-            
-            <div class="warning">
-                <p><strong>⚠️ تحذير أمني:</strong></p>
-                <ul>
-                    <li>هذا الرمز صالح لمدة 15 دقيقة فقط</li>
-                    <li>لا تشارك هذا الرمز مع أي شخص</li>
-                    <li>إذا لم تطلب إعادة تعيين كلمة المرور، تجاهل هذا الإيميل</li>
-                </ul>
-            </div>
-            
-            <p>لإعادة تعيين كلمة المرور:</p>
-            <ol>
-                <li>ارجع لصفحة إعادة تعيين كلمة المرور</li>
-                <li>أدخل الرمز أعلاه</li>
-                <li>أدخل كلمة المرور الجديدة</li>
-                <li>أكد كلمة المرور الجديدة</li>
-            </ol>
-            
-            <div class="footer">
-                <p>هذا إيميل تلقائي من نظام مكافحة السرقة</p>
-                <p>لا ترد على هذا الإيميل</p>
-            </div>
-        </div>
-    </body>
-    </html>
-    \`;
-
-    // إرسال الإيميل
-    const emailResult = await sendEmail(
-        email,
-        '🔑 رمز إعادة تعيين كلمة المرور - نظام مكافحة السرقة',
-        emailHTML
-    );
+    // تعطيل إرسال الإيميل مؤقتاً - عرض الرمز على الشاشة
+    const emailResult = { success: false, error: 'Email service disabled' };
 
     if (emailResult.success) {
         res.json({
