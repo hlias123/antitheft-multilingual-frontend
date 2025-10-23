@@ -14,6 +14,15 @@ app.use(express.json());
 let connectedDevices = [];
 let userSessions = {};
 let deviceLocations = {};
+let registeredUsers = {
+    'hlia.hlias123@gmail.com': {
+        password: 'demo123',
+        pin: '1234',
+        createdAt: new Date(),
+        isActive: true
+    }
+};
+let passwordResetTokens = {};
 
 // معالجة الطلبات مع دعم اللغات
 app.get('/', (req, res) => {
@@ -91,23 +100,99 @@ app.post('/api/user/language', (req, res) => {
     });
 });
 
+// API لإنشاء حساب جديد
+app.post('/api/auth/register', (req, res) => {
+    const { email, password, confirmPassword, pin } = req.body;
+    
+    // التحقق من البيانات المطلوبة
+    if (!email || !password || !confirmPassword || !pin) {
+        return res.status(400).json({
+            success: false,
+            message: 'جميع الحقول مطلوبة'
+        });
+    }
+    
+    // التحقق من صحة البريد الإلكتروني
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        return res.status(400).json({
+            success: false,
+            message: 'البريد الإلكتروني غير صحيح'
+        });
+    }
+    
+    // التحقق من تطابق كلمات المرور
+    if (password !== confirmPassword) {
+        return res.status(400).json({
+            success: false,
+            message: 'كلمات المرور غير متطابقة'
+        });
+    }
+    
+    // التحقق من طول كلمة المرور
+    if (password.length < 4) {
+        return res.status(400).json({
+            success: false,
+            message: 'كلمة المرور يجب أن تكون 4 أحرف على الأقل'
+        });
+    }
+    
+    // التحقق من PIN
+    if (!pin || pin.length !== 4 || !/^\d{4}$/.test(pin)) {
+        return res.status(400).json({
+            success: false,
+            message: 'PIN يجب أن يكون 4 أرقام'
+        });
+    }
+    
+    // التحقق من وجود المستخدم
+    if (registeredUsers[email]) {
+        return res.status(409).json({
+            success: false,
+            message: 'البريد الإلكتروني مسجل مسبقاً'
+        });
+    }
+    
+    // إنشاء المستخدم الجديد
+    registeredUsers[email] = {
+        password: password,
+        pin: pin,
+        createdAt: new Date(),
+        isActive: true
+    };
+    
+    res.json({
+        success: true,
+        message: 'تم إنشاء الحساب بنجاح',
+        email: email
+    });
+});
+
 // API لتسجيل الدخول الحقيقي
 app.post('/api/auth/login', (req, res) => {
     const { email, password, deviceId } = req.body;
 
-    // التحقق من الإيميل المسموح
-    if (email !== 'hlia.hlias123@gmail.com') {
+    // التحقق من وجود المستخدم
+    if (!registeredUsers[email]) {
         return res.status(401).json({
             success: false,
-            message: 'البريد الإلكتروني غير مصرح له بالدخول'
+            message: 'البريد الإلكتروني غير مسجل'
         });
     }
 
-    // التحقق من كلمة المرور (في الإنتاج ستكون مشفرة)
-    if (!password || password.length < 4) {
+    // التحقق من كلمة المرور
+    if (!password || registeredUsers[email].password !== password) {
         return res.status(401).json({
             success: false,
-            message: 'كلمة المرور مطلوبة (4 أحرف على الأقل)'
+            message: 'كلمة المرور غير صحيحة'
+        });
+    }
+
+    // التحقق من أن الحساب نشط
+    if (!registeredUsers[email].isActive) {
+        return res.status(401).json({
+            success: false,
+            message: 'الحساب غير نشط'
         });
     }
 
@@ -140,20 +225,134 @@ app.post('/api/auth/verify-pin', (req, res) => {
         });
     }
 
-    // في التطبيق الحقيقي، سيتم التحقق من PIN المحفوظ
-    // هنا نقبل أي PIN مكون من 4 أرقام للعرض
-    if (pin && pin.length === 4 && /^\d{4}$/.test(pin)) {
-        userSessions[sessionId].pinVerified = true;
-        res.json({
-            success: true,
-            message: 'تم تأكيد PIN بنجاح'
+    const session = userSessions[sessionId];
+    const userEmail = session.email;
+    
+    // التحقق من وجود المستخدم
+    if (!registeredUsers[userEmail]) {
+        return res.status(401).json({
+            success: false,
+            message: 'مستخدم غير موجود'
         });
+    }
+
+    // التحقق من PIN المحفوظ
+    if (pin && pin.length === 4 && /^\d{4}$/.test(pin)) {
+        if (registeredUsers[userEmail].pin === pin) {
+            userSessions[sessionId].pinVerified = true;
+            res.json({
+                success: true,
+                message: 'تم تأكيد PIN بنجاح'
+            });
+        } else {
+            res.status(400).json({
+                success: false,
+                message: 'PIN غير صحيح'
+            });
+        }
     } else {
         res.status(400).json({
             success: false,
-            message: 'PIN غير صحيح - يجب أن يكون 4 أرقام'
+            message: 'PIN يجب أن يكون 4 أرقام'
         });
     }
+});
+
+// API لطلب إعادة تعيين كلمة المرور
+app.post('/api/auth/forgot-password', (req, res) => {
+    const { email } = req.body;
+    
+    if (!email) {
+        return res.status(400).json({
+            success: false,
+            message: 'البريد الإلكتروني مطلوب'
+        });
+    }
+    
+    // التحقق من وجود المستخدم
+    if (!registeredUsers[email]) {
+        return res.status(404).json({
+            success: false,
+            message: 'البريد الإلكتروني غير مسجل'
+        });
+    }
+    
+    // إنشاء رمز إعادة التعيين (في التطبيق الحقيقي سيتم إرساله بالبريد)
+    const resetToken = Math.floor(1000 + Math.random() * 9000).toString();
+    passwordResetTokens[email] = {
+        token: resetToken,
+        createdAt: new Date(),
+        expiresAt: new Date(Date.now() + 15 * 60 * 1000) // 15 دقيقة
+    };
+    
+    res.json({
+        success: true,
+        message: 'تم إرسال رمز إعادة التعيين',
+        resetToken: resetToken, // في التطبيق الحقيقي لن يتم إرسال الرمز في الاستجابة
+        pin: registeredUsers[email].pin // إرسال PIN للمساعدة في العرض
+    });
+});
+
+// API لإعادة تعيين كلمة المرور
+app.post('/api/auth/reset-password', (req, res) => {
+    const { email, resetToken, newPassword, confirmPassword } = req.body;
+    
+    if (!email || !resetToken || !newPassword || !confirmPassword) {
+        return res.status(400).json({
+            success: false,
+            message: 'جميع الحقول مطلوبة'
+        });
+    }
+    
+    // التحقق من وجود المستخدم
+    if (!registeredUsers[email]) {
+        return res.status(404).json({
+            success: false,
+            message: 'البريد الإلكتروني غير مسجل'
+        });
+    }
+    
+    // التحقق من رمز إعادة التعيين
+    if (!passwordResetTokens[email] || passwordResetTokens[email].token !== resetToken) {
+        return res.status(400).json({
+            success: false,
+            message: 'رمز إعادة التعيين غير صحيح'
+        });
+    }
+    
+    // التحقق من انتهاء صلاحية الرمز
+    if (new Date() > passwordResetTokens[email].expiresAt) {
+        delete passwordResetTokens[email];
+        return res.status(400).json({
+            success: false,
+            message: 'رمز إعادة التعيين منتهي الصلاحية'
+        });
+    }
+    
+    // التحقق من تطابق كلمات المرور
+    if (newPassword !== confirmPassword) {
+        return res.status(400).json({
+            success: false,
+            message: 'كلمات المرور غير متطابقة'
+        });
+    }
+    
+    // التحقق من طول كلمة المرور
+    if (newPassword.length < 4) {
+        return res.status(400).json({
+            success: false,
+            message: 'كلمة المرور يجب أن تكون 4 أحرف على الأقل'
+        });
+    }
+    
+    // تحديث كلمة المرور
+    registeredUsers[email].password = newPassword;
+    delete passwordResetTokens[email];
+    
+    res.json({
+        success: true,
+        message: 'تم تغيير كلمة المرور بنجاح'
+    });
 });
 
 // API لتسجيل الجهاز
@@ -279,7 +478,7 @@ app.get('/dashboard', (req, res) => {
         <div class="header">
             <div class="container">
                 <h1>🛡️ لوحة التحكم - نظام مكافحة السرقة</h1>
-                <p>مرحباً hlia.hlias123@gmail.com</p>
+                <p>مرحباً <span id="userEmail">المستخدم</span></p>
             </div>
         </div>
         
@@ -333,6 +532,12 @@ app.get('/dashboard', (req, res) => {
         <script>
             let sessionId = localStorage.getItem('sessionId');
             let isPinVerified = false;
+            
+            // عرض البريد الإلكتروني المحفوظ
+            const userEmail = localStorage.getItem('userEmail');
+            if (userEmail) {
+                document.getElementById('userEmail').textContent = userEmail;
+            }
             
             // تحديث الإحصائيات
             async function updateStats() {
@@ -463,12 +668,17 @@ app.get('/login', (req, res) => {
             <h1>🔐 تسجيل الدخول</h1>
             <p>نظام مكافحة السرقة</p>
             <div>
-                <input type="email" class="email-input" id="emailInput" placeholder="البريد الإلكتروني" value="hlia.hlias123@gmail.com" readonly>
+                <input type="email" class="email-input" id="emailInput" placeholder="البريد الإلكتروني" required>
                 <input type="password" class="email-input" id="passwordInput" placeholder="كلمة المرور" required onkeypress="if(event.key==='Enter') login()">
                 <button class="login-btn" onclick="login()">🔐 تسجيل الدخول</button>
                 <div id="loginStatus"></div>
+                <div style="margin-top: 20px;">
+                    <a href="/forgot-password?lang=${lang}" style="color: #ffeb3b; text-decoration: none; margin: 10px;">🔑 نسيت كلمة المرور؟</a>
+                    <br>
+                    <a href="/register?lang=${lang}" style="color: #4caf50; text-decoration: none; margin: 10px;">📝 إنشاء حساب جديد</a>
+                </div>
                 <p style="font-size: 12px; opacity: 0.8; margin-top: 15px;">
-                    💡 أدخل أي كلمة مرور (4 أحرف على الأقل)
+                    💡 الحساب التجريبي: hlia.hlias123@gmail.com / demo123
                 </p>
             </div>
             <a href="/?lang=${lang}" class="back-btn">العودة للصفحة الرئيسية</a>
@@ -506,6 +716,7 @@ app.get('/login', (req, res) => {
                     
                     if (data.success) {
                         localStorage.setItem('sessionId', data.sessionId);
+                        localStorage.setItem('userEmail', email);
                         statusDiv.innerHTML = '<p class="success">✅ تم تسجيل الدخول بنجاح!</p>';
                         setTimeout(() => {
                             window.location.href = '/dashboard?lang=${lang}';
@@ -523,12 +734,246 @@ app.get('/login', (req, res) => {
     `);
 });
 
-// إعادة توجيه الروابط القديمة
-app.get('/auth/google', (req, res) => {
-    res.redirect('/login?lang=' + (req.query.lang || 'ar'));
+// صفحة إنشاء حساب جديد
+app.get('/register', (req, res) => {
+    const lang = req.query.lang || 'ar';
+    const dir = lang === 'ar' ? 'rtl' : 'ltr';
+
+    res.send(`
+    <!DOCTYPE html>
+    <html lang="${lang}" dir="${dir}">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>إنشاء حساب جديد - نظام مكافحة السرقة</title>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+            .container { background: rgba(255,255,255,0.1); padding: 40px; border-radius: 20px; text-align: center; backdrop-filter: blur(10px); max-width: 400px; }
+            .form-input { width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
+            .register-btn { background: #4caf50; color: white; padding: 15px 30px; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; margin: 10px; transition: all 0.3s; width: 100%; }
+            .register-btn:hover { background: #45a049; }
+            .back-btn { background: rgba(255,255,255,0.2); color: white; padding: 10px 20px; border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; text-decoration: none; display: inline-block; margin: 10px; }
+            .login-link { background: #2196f3; color: white; padding: 10px 20px; border: none; border-radius: 10px; text-decoration: none; display: inline-block; margin: 10px; }
+            .error { color: #ffcdd2; margin: 10px 0; }
+            .success { color: #c8e6c9; margin: 10px 0; }
+            .pin-input { width: 100px; text-align: center; letter-spacing: 5px; font-size: 18px; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>📝 إنشاء حساب جديد</h1>
+            <p>نظام مكافحة السرقة</p>
+            <div>
+                <input type="email" class="form-input" id="emailInput" placeholder="البريد الإلكتروني" required>
+                <input type="password" class="form-input" id="passwordInput" placeholder="كلمة المرور" required>
+                <input type="password" class="form-input" id="confirmPasswordInput" placeholder="تأكيد كلمة المرور" required>
+                <input type="password" class="form-input pin-input" id="pinInput" placeholder="PIN" maxlength="4" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
+                <button class="register-btn" onclick="register()">✅ إنشاء الحساب</button>
+                <div id="registerStatus"></div>
+                <p style="font-size: 12px; opacity: 0.8; margin-top: 15px;">
+                    💡 كلمة المرور: 4 أحرف على الأقل<br>
+                    🔐 PIN: 4 أرقام للحماية الإضافية
+                </p>
+            </div>
+            <div>
+                <a href="/login?lang=${lang}" class="login-link">لديك حساب؟ سجل الدخول</a>
+                <a href="/?lang=${lang}" class="back-btn">العودة للصفحة الرئيسية</a>
+            </div>
+        </div>
+        <script>
+            async function register() {
+                const email = document.getElementById('emailInput').value;
+                const password = document.getElementById('passwordInput').value;
+                const confirmPassword = document.getElementById('confirmPasswordInput').value;
+                const pin = document.getElementById('pinInput').value;
+                const statusDiv = document.getElementById('registerStatus');
+                
+                if (!email || !password || !confirmPassword || !pin) {
+                    statusDiv.innerHTML = '<p class="error">جميع الحقول مطلوبة</p>';
+                    return;
+                }
+                
+                statusDiv.innerHTML = '<p>جاري إنشاء الحساب...</p>';
+                
+                try {
+                    const response = await fetch('/api/auth/register', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            email: email,
+                            password: password,
+                            confirmPassword: confirmPassword,
+                            pin: pin
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        statusDiv.innerHTML = '<p class="success">✅ تم إنشاء الحساب بنجاح!</p>';
+                        setTimeout(() => {
+                            window.location.href = '/login?lang=${lang}';
+                        }, 2000);
+                    } else {
+                        statusDiv.innerHTML = \`<p class="error">❌ \${data.message}</p>\`;
+                    }
+                } catch (error) {
+                    statusDiv.innerHTML = '<p class="error">خطأ في إنشاء الحساب</p>';
+                }
+            }
+        </script>
+    </body>
+    </html>
+    `);
 });
 
-app.get('/register', (req, res) => {
+// صفحة نسيت كلمة المرور
+app.get('/forgot-password', (req, res) => {
+    const lang = req.query.lang || 'ar';
+    const dir = lang === 'ar' ? 'rtl' : 'ltr';
+
+    res.send(`
+    <!DOCTYPE html>
+    <html lang="${lang}" dir="${dir}">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>نسيت كلمة المرور - نظام مكافحة السرقة</title>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+            .container { background: rgba(255,255,255,0.1); padding: 40px; border-radius: 20px; text-align: center; backdrop-filter: blur(10px); max-width: 400px; }
+            .form-input { width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
+            .btn { background: #ff9800; color: white; padding: 15px 30px; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; margin: 10px; transition: all 0.3s; width: 100%; }
+            .btn:hover { background: #f57c00; }
+            .reset-btn { background: #4caf50; }
+            .reset-btn:hover { background: #45a049; }
+            .back-btn { background: rgba(255,255,255,0.2); color: white; padding: 10px 20px; border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; text-decoration: none; display: inline-block; margin: 10px; }
+            .error { color: #ffcdd2; margin: 10px 0; }
+            .success { color: #c8e6c9; margin: 10px 0; }
+            .info { color: #b3e5fc; margin: 10px 0; }
+            .hidden { display: none; }
+            .pin-display { background: rgba(255,255,255,0.2); padding: 15px; border-radius: 10px; margin: 10px 0; font-size: 18px; letter-spacing: 3px; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🔑 نسيت كلمة المرور</h1>
+            <p>نظام مكافحة السرقة</p>
+            
+            <!-- مرحلة طلب إعادة التعيين -->
+            <div id="requestStep">
+                <input type="email" class="form-input" id="emailInput" placeholder="البريد الإلكتروني" required>
+                <button class="btn" onclick="requestReset()">📧 إرسال رمز إعادة التعيين</button>
+                <div id="requestStatus"></div>
+            </div>
+            
+            <!-- مرحلة إعادة التعيين -->
+            <div id="resetStep" class="hidden">
+                <div class="info">
+                    <p>📧 تم إرسال رمز إعادة التعيين</p>
+                    <div class="pin-display">
+                        <strong>رمز إعادة التعيين: <span id="resetTokenDisplay"></span></strong>
+                    </div>
+                    <div class="pin-display">
+                        <strong>PIN الخاص بك: <span id="pinDisplay"></span></strong>
+                    </div>
+                </div>
+                <input type="text" class="form-input" id="resetTokenInput" placeholder="رمز إعادة التعيين" required>
+                <input type="password" class="form-input" id="newPasswordInput" placeholder="كلمة المرور الجديدة" required>
+                <input type="password" class="form-input" id="confirmNewPasswordInput" placeholder="تأكيد كلمة المرور الجديدة" required>
+                <button class="btn reset-btn" onclick="resetPassword()">🔄 تغيير كلمة المرور</button>
+                <div id="resetStatus"></div>
+            </div>
+            
+            <div>
+                <a href="/login?lang=${lang}" class="back-btn">العودة لتسجيل الدخول</a>
+            </div>
+        </div>
+        <script>
+            let currentEmail = '';
+            
+            async function requestReset() {
+                const email = document.getElementById('emailInput').value;
+                const statusDiv = document.getElementById('requestStatus');
+                
+                if (!email) {
+                    statusDiv.innerHTML = '<p class="error">البريد الإلكتروني مطلوب</p>';
+                    return;
+                }
+                
+                currentEmail = email;
+                statusDiv.innerHTML = '<p>جاري إرسال رمز إعادة التعيين...</p>';
+                
+                try {
+                    const response = await fetch('/api/auth/forgot-password', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: email })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        statusDiv.innerHTML = '<p class="success">✅ تم إرسال رمز إعادة التعيين!</p>';
+                        document.getElementById('resetTokenDisplay').textContent = data.resetToken;
+                        document.getElementById('pinDisplay').textContent = data.pin;
+                        document.getElementById('requestStep').classList.add('hidden');
+                        document.getElementById('resetStep').classList.remove('hidden');
+                    } else {
+                        statusDiv.innerHTML = \`<p class="error">❌ \${data.message}</p>\`;
+                    }
+                } catch (error) {
+                    statusDiv.innerHTML = '<p class="error">خطأ في إرسال رمز إعادة التعيين</p>';
+                }
+            }
+            
+            async function resetPassword() {
+                const resetToken = document.getElementById('resetTokenInput').value;
+                const newPassword = document.getElementById('newPasswordInput').value;
+                const confirmNewPassword = document.getElementById('confirmNewPasswordInput').value;
+                const statusDiv = document.getElementById('resetStatus');
+                
+                if (!resetToken || !newPassword || !confirmNewPassword) {
+                    statusDiv.innerHTML = '<p class="error">جميع الحقول مطلوبة</p>';
+                    return;
+                }
+                
+                statusDiv.innerHTML = '<p>جاري تغيير كلمة المرور...</p>';
+                
+                try {
+                    const response = await fetch('/api/auth/reset-password', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            email: currentEmail,
+                            resetToken: resetToken,
+                            newPassword: newPassword,
+                            confirmPassword: confirmNewPassword
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        statusDiv.innerHTML = '<p class="success">✅ تم تغيير كلمة المرور بنجاح!</p>';
+                        setTimeout(() => {
+                            window.location.href = '/login?lang=${lang}';
+                        }, 2000);
+                    } else {
+                        statusDiv.innerHTML = \`<p class="error">❌ \${data.message}</p>\`;
+                    }
+                } catch (error) {
+                    statusDiv.innerHTML = '<p class="error">خطأ في تغيير كلمة المرور</p>';
+                }
+            }
+        </script>
+    </body>
+    </html>
+    `);
+});
+
+// إعادة توجيه الروابط القديمة
+app.get('/auth/google', (req, res) => {
     res.redirect('/login?lang=' + (req.query.lang || 'ar'));
 });
 
