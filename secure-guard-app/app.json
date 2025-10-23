@@ -1,0 +1,15 @@
+{
+  "name": "SecureGuardApp",
+  "displayName": "SecureGuard Pro",
+  "description": "Advanced Security App for Mobile Device Protection",
+  "version": "1.0.0",
+  "orientation": "portrait",
+  "icon": "./src/assets/images/icon.png",
+  "splash": {
+    "image": "./src/assets/images/splash.png",
+    "resizeMode": "contain",
+    "backgroundColor": "#000000"
+  },
+  "platforms": ["ios", "android"],
+  "privacy": "unlisted"
+}

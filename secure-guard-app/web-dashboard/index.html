@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureGuard Pro - لوحة التحكم</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <span class="logo-icon">🛡️</span>
+                    <h1>SecureGuard Pro</h1>
+                </div>
+                <div class="header-actions">
+                    <div class="connection-status" id="connectionStatus">
+                        <span class="status-dot"></span>
+                        <span class="status-text">متصل</span>
+                    </div>
+                    <button class="logout-btn" onclick="logout()">تسجيل الخروج</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <!-- Device Status Card -->
+            <div class="card device-status-card">
+                <div class="card-header">
+                    <h2>حالة الجهاز</h2>
+                    <div class="device-status" id="deviceStatus">
+                        <span class="status-indicator online"></span>
+                        <span>متصل</span>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <div class="status-grid">
+                        <div class="status-item">
+                            <span class="status-label">آخر تحديث:</span>
+                            <span class="status-value" id="lastUpdate">منذ 5 ثوانٍ</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">البطارية:</span>
+                            <span class="status-value" id="batteryLevel">85%</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">دقة GPS:</span>
+                            <span class="status-value" id="gpsAccuracy">2.5 متر</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">نوع الشبكة:</span>
+                            <span class="status-value" id="networkType">WiFi</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Control Panel -->
+            <div class="card control-panel-card">
+                <div class="card-header">
+                    <h2>لوحة التحكم</h2>
+                </div>
+                <div class="card-content">
+                    <div class="control-buttons">
+                        <button class="control-btn alarm-btn" onclick="activateAlarm()">
+                            <span class="btn-icon">🚨</span>
+                            <span class="btn-text">تفعيل الإنذار</span>
+                        </button>
+                        <button class="control-btn locate-btn" onclick="locateDevice()">
+                            <span class="btn-icon">📍</span>
+                            <span class="btn-text">تحديد الموقع</span>
+                        </button>
+                        <button class="control-btn photo-btn" onclick="capturePhoto()">
+                            <span class="btn-icon">📸</span>
+                            <span class="btn-text">التقاط صورة</span>
+                        </button>
+                        <button class="control-btn lock-btn" onclick="lockDevice()">
+                            <span class="btn-icon">🔒</span>
+                            <span class="btn-text">قفل الجهاز</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Map Container -->
+            <div class="card map-card">
+                <div class="card-header">
+                    <h2>الموقع الحالي</h2>
+                    <div class="map-controls">
+                        <button class="map-control-btn" onclick="centerMap()">توسيط الخريطة</button>
+                        <button class="map-control-btn" onclick="toggleTracking()">
+                            <span id="trackingText">إيقاف التتبع</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <div id="map" class="map-container"></div>
+                    <div class="location-info">
+                        <div class="location-item">
+                            <span class="location-label">الإحداثيات:</span>
+                            <span class="location-value" id="coordinates">24.7136, 46.6753</span>
+                        </div>
+                        <div class="location-item">
+                            <span class="location-label">العنوان:</span>
+                            <span class="location-value" id="address">الرياض، المملكة العربية السعودية</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Photos -->
+            <div class="card photos-card">
+                <div class="card-header">
+                    <h2>الصور الحديثة</h2>
+                    <button class="view-all-btn" onclick="viewAllPhotos()">عرض الكل</button>
+                </div>
+                <div class="card-content">
+                    <div class="photos-grid" id="photosGrid">
+                        <!-- Photos will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Location History -->
+            <div class="card history-card">
+                <div class="card-header">
+                    <h2>سجل المواقع</h2>
+                    <div class="history-controls">
+                        <select class="time-filter" id="timeFilter" onchange="filterHistory()">
+                            <option value="1h">آخر ساعة</option>
+                            <option value="6h">آخر 6 ساعات</option>
+                            <option value="24h" selected>آخر 24 ساعة</option>
+                            <option value="7d">آخر أسبوع</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <div class="history-list" id="historyList">
+                        <!-- Location history will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alerts History -->
+            <div class="card alerts-card">
+                <div class="card-header">
+                    <h2>سجل التنبيهات</h2>
+                </div>
+                <div class="card-content">
+                    <div class="alerts-list" id="alertsList">
+                        <!-- Alerts will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Photo Modal -->
+    <div class="modal" id="photoModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>عرض الصورة</h3>
+                <button class="modal-close" onclick="closePhotoModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <img id="modalPhoto" src="" alt="صورة">
+                <div class="photo-info">
+                    <div class="photo-detail">
+                        <span class="detail-label">التاريخ:</span>
+                        <span class="detail-value" id="photoDate"></span>
+                    </div>
+                    <div class="photo-detail">
+                        <span class="detail-label">الموقع:</span>
+                        <span class="detail-value" id="photoLocation"></span>
+                    </div>
+                    <div class="photo-detail">
+                        <span class="detail-label">الكاميرا:</span>
+                        <span class="detail-value" id="photoCamera"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">جاري التحميل...</div>
+    </div>
+
+    <!-- Notification Container -->
+    <div class="notification-container" id="notificationContainer"></div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

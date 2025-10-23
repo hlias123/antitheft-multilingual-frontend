@@ -2,10 +2,10 @@
   "name": "antitheft-multilingual-frontend",
   "version": "1.0.0",
   "description": "Anti-theft system with multilingual support and environment variables",
-  "main": "server-with-env.js",
+  "main": "server-simple.js",
   "scripts": {
-    "start": "node server-with-env.js",
-    "dev": "node server-with-env.js",
+    "start": "node server-simple.js",
+    "dev": "node server-simple.js",
     "build": "echo 'Build completed - no compilation needed'",
     "postinstall": "echo 'Installation completed successfully'"
   },

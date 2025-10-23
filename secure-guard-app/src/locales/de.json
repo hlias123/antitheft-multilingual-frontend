@@ -1,0 +1,10 @@
+{
+  "common": {
+    "ok": "OK",
+    "cancel": "Abbrechen",
+    "loading": "Laden..."
+  },
+  "app": {
+    "name": "SecureGuard Pro"
+  }
+}

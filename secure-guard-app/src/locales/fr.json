@@ -1,0 +1,53 @@
+{
+  "common": {
+    "ok": "OK",
+    "cancel": "Annuler",
+    "yes": "Oui",
+    "no": "Non",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "close": "Fermer",
+    "back": "Retour",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "warning": "Avertissement",
+    "info": "Info",
+    "retry": "Réessayer",
+    "continue": "Continuer",
+    "skip": "Ignorer"
+  },
+  "app": {
+    "name": "SecureGuard Pro",
+    "description": "Protection avancée pour votre appareil",
+    "version": "Version {{version}}"
+  },
+  "auth": {
+    "login": "Connexion",
+    "logout": "Déconnexion",
+    "loginRequired": "Connexion requise",
+    "loginRequiredDesc": "Vous devez vous connecter pour accéder à l'application",
+    "googleLogin": "Se connecter avec Google",
+    "createAccount": "Créer un nouveau compte",
+    "termsAgree": "En continuant, vous acceptez les conditions d'utilisation",
+    "loginFailed": "Échec de la connexion",
+    "accountCreated": "Compte créé avec succès",
+    "logoutConfirm": "Êtes-vous sûr de vouloir vous déconnecter?"
+  },
+  "pin": {
+    "enterPin": "Entrez le code de sécurité",
+    "enterPinDesc": "Pour accéder à l'application",
+    "wrongPin": "PIN incorrect",
+    "attemptsRemaining": "Tentatives restantes: {{count}}",
+    "maxAttemptsReached": "Nombre maximum de tentatives dépassé",
+    "alarmActivated": "Le système d'alarme sera activé",
+    "verifying": "Vérification...",
+    "changePin": "Changer le PIN",
+    "newPin": "Nouveau PIN",
+    "confirmPin": "Confirmer le PIN",
+    "pinChanged": "PIN modifié avec succès"
+  }
+}

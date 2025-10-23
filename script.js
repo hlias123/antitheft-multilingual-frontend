@@ -19,6 +19,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // تحميل البيانات من الباك إند
     loadBackendData();
+    
+    // تحديث أزرار تسجيل الدخول/الخروج
+    updateAuthButtons();
 });
 
 // دالة إعداد مبدل اللغة
@@ -62,9 +65,7 @@ function setupLanguageSwitcher() {
 
 // دالة فتح/إغلاق القائمة المنسدلة
 function toggleDropdown() {
-    const languageBtn = document.getElementById('languageBtn');
     const langDropdown = document.getElementById('langDropdown');
-    
     const isOpen = langDropdown.classList.contains('show');
     
     if (isOpen) {
@@ -145,11 +146,6 @@ function setupInteractiveEffects() {
     });
 }
 
-// دالة الحصول على الترجمة الحالية
-function getCurrentTranslation(key) {
-    return translations[currentLanguage] && translations[currentLanguage][key];
-}
-
 // دالة عرض الإشعارات
 function showNotification(message) {
     // إنشاء عنصر الإشعار
@@ -198,33 +194,14 @@ function showNotification(message) {
     }, 3000);
 }
 
-// دالة تحديث المحتوى الديناميكي (للاستخدام المستقبلي)
-function updateDynamicContent() {
-    // يمكن استخدام هذه الدالة لتحديث المحتوى الذي يأتي من API
-    console.log('تحديث المحتوى الديناميكي للغة:', currentLanguage);
-}
-
-// دالة تصدير إعدادات اللغة (للاستخدام مع APIs)
-function getLanguageSettings() {
-    return {
-        currentLanguage: currentLanguage,
-        direction: languageConfig[currentLanguage].dir,
-        flag: languageConfig[currentLanguage].flag,
-        name: languageConfig[currentLanguage].name
-    };
-}
-
-// تصدير الدوال للاستخدام العام
-window.getLanguageSettings = getLanguageSettings;
-window.updateDynamicContent = updateDynamicContent;
-window.showNotification = showNotification;
 // دالة استخراج اللغة من URL
 function getLanguageFromURL() {
     const urlParams = new URLSearchParams(window.location.search);
     const langParam = urlParams.get('lang');
     
-    // التحقق من أن اللغة مدعومة
-    if (langParam && translations[langParam]) {
+    // التحقق من أن اللغة مدعومة (العربية، الإنجليزية، اليونانية)
+    const supportedLanguages = ['ar', 'en', 'el'];
+    if (langParam && supportedLanguages.includes(langParam)) {
         return langParam;
     }
     
@@ -253,189 +230,6 @@ function setupURLSync() {
 
 // تعديل دالة تبديل اللغة لتشمل تحديث URL
 function switchLanguageWithURL(lang) {
-    if (lang !== currentLanguage) {
-        applyTranslations(lang);
-        updateURL(lang);
-        
-        // إضافة تأثير انتقال سلس
-        document.body.style.opacity = '0.8';
-        setTimeout(() => {
-            document.body.style.opacity = '1';
-        }, 200);
-    }
-}
-
-// دالة للتكامل مع الباك إند
-function syncWithBackend(lang) {
-    // إرسال اللغة المختارة للخادم (اختياري)
-    const backendURL = 'https://antitheft-backend-production.up.railway.app/';
-    
-    // يمكن إرسال طلب لحفظ تفضيل اللغة
-    fetch(backendURL + 'api/user/language', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept-Language': lang
-        },
-        body: JSON.stringify({ language: lang })
-    }).catch(error => {
-        console.log('تعذر مزامنة اللغة مع الخادم:', error);
-    });
-}
-
-// دالة للحصول على المحتوى من الباك إند
-async function loadDynamicContent(lang) {
-    try {
-        const backendURL = 'https://antitheft-backend-production.up.railway.app/';
-        const response = await fetch(backendURL + `api/content?lang=${lang}`);
-        
-        if (response.ok) {
-            const data = await response.json();
-            // تحديث المحتوى الديناميكي
-            updateDynamicElements(data);
-        }
-    } catch (error) {
-        console.log('تعذر تحميل المحتوى الديناميكي:', error);
-    }
-}
-
-// دالة تحديث العناصر الديناميكية
-function updateDynamicElements(data) {
-    // تحديث العناصر التي تأتي من الخادم
-    if (data.notifications) {
-        updateNotifications(data.notifications);
-    }
-    
-    if (data.userStats) {
-        updateUserStats(data.userStats);
-    }
-}
-
-// تصدير الدوال الجديدة
-window.getLanguageFromURL = getLanguageFromURL;
-window.updateURL = updateURL;
-window.switchLanguageWithURL = switchLanguageWithURL;
-window.syncWithBackend = syncWithBackend;
-window.loadDynamicContent = loadDynamicContent;
-
-// دالة تحميل البيانات من الباك إند
-async function loadBackendData() {
-    try {
-        // تحميل الإحصائيات
-        await backendAPI.loadSystemStats();
-        
-        // تحميل التنبيهات الحديثة
-        await backendAPI.loadRecentAlerts();
-        
-    } catch (error) {
-        console.log('تعذر تحميل البيانات من الخادم:', error);
-        
-        // عرض بيانات تجريبية في حالة فشل الاتصال
-        displayDemoStats();
-    }
-}
-
-// دالة عرض بيانات تجريبية
-function displayDemoStats() {
-    const demoStats = {
-        protectedDevices: 1247,
-        activeAlerts: 3,
-        averageResponseTime: 150
-    };
-    
-    backendAPI.updateStatsDisplay(demoStats);
-}
-
-// إضافة مستمع لتغيير اللغة
-function setupLanguageChangeListener() {
-    const originalSwitchLanguage = window.switchLanguageWithURL;
-    
-    window.switchLanguageWithURL = function(lang) {
-        // تطبيق التغيير الأصلي
-        originalSwitchLanguage(lang);
-        
-        // إرسال حدث تغيير اللغة
-        const event = new CustomEvent('languageChanged', {
-            detail: { language: lang }
-        });
-        window.dispatchEvent(event);
-        
-        // إعادة تحميل البيانات باللغة الجديدة
-        setTimeout(() => {
-            loadBackendData();
-        }, 500);
-    };
-}
-
-// تطبيق مستمع تغيير اللغة
-setupLanguageChangeListener();/
-/ دوال المميزات الجديدة
-function loginWithGoogle() {
-    const currentLang = localStorage.getItem('selectedLanguage') || 'ar';
-    const messages = {
-        ar: 'جاري التوجيه لتسجيل الدخول بـ Google...',
-        en: 'Redirecting to Google Login...',
-        el: 'Ανακατεύθυνση στη σύνδεση Google...'
-    };
-    
-    showNotification(messages[currentLang]);
-    
-    setTimeout(() => {
-        const backendURL = 'https://antitheft-backend-production.up.railway.app/';
-        window.open(backendURL + `auth/google?lang=${currentLang}`, '_blank');
-    }, 1000);
-}
-
-function createAccount() {
-    const currentLang = localStorage.getItem('selectedLanguage') || 'ar';
-    const messages = {
-        ar: 'جاري التوجيه لإنشاء حساب جديد...',
-        en: 'Redirecting to create new account...',
-        el: 'Ανακατεύθυνση για δημιουργία νέου λογαριασμού...'
-    };
-    
-    showNotification(messages[currentLang]);
-    
-    setTimeout(() => {
-        const backendURL = 'https://antitheft-backend-production.up.railway.app/';
-        window.open(backendURL + `register?lang=${currentLang}`, '_blank');
-    }, 1000);
-}
-
-function verifyEmail() {
-    const currentLang = localStorage.getItem('selectedLanguage') || 'ar';
-    const messages = {
-        ar: 'جاري التوجيه لتأكيد البريد الإلكتروني...',
-        en: 'Redirecting to email verification...',
-        el: 'Ανακατεύθυνση για επαλήθευση email...'
-    };
-    
-    showNotification(messages[currentLang]);
-    
-    setTimeout(() => {
-        const backendURL = 'https://antitheft-backend-production.up.railway.app/';
-        window.open(backendURL + `verify-email?lang=${currentLang}`, '_blank');
-    }, 1000);
-}
-
-function viewMap() {
-    const currentLang = localStorage.getItem('selectedLanguage') || 'ar';
-    const messages = {
-        ar: 'جاري فتح الخريطة...',
-        en: 'Opening map...',
-        el: 'Άνοιγμα χάρτη...'
-    };
-    
-    showNotification(messages[currentLang]);
-    
-    setTimeout(() => {
-        const backendURL = 'https://antitheft-backend-production.up.railway.app/';
-        window.open(backendURL + `map?lang=${currentLang}`, '_blank');
-    }, 1000);
-}
-
-// تحديث دالة تبديل اللغة لدعم اليونانية
-function switchLanguageWithURL(lang) {
     const supportedLanguages = ['ar', 'en', 'el'];
     if (!supportedLanguages.includes(lang)) {
         lang = 'ar'; // اللغة الافتراضية
@@ -453,28 +247,13 @@ function switchLanguageWithURL(lang) {
     }
 }
 
-// تحديث دالة التحقق من اللغة المدعومة
-function getLanguageFromURL() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const langParam = urlParams.get('lang');
-    
-    // التحقق من أن اللغة مدعومة (العربية، الإنجليزية، اليونانية)
-    const supportedLanguages = ['ar', 'en', 'el'];
-    if (langParam && supportedLanguages.includes(langParam)) {
-        return langParam;
-    }
-    
-    return null;
-}
-
-// إضافة دعم اللغة اليونانية في الخادم
+// دالة للتكامل مع الباك إند
 function syncWithBackend(lang) {
     const supportedLanguages = ['ar', 'en', 'el'];
     const finalLang = supportedLanguages.includes(lang) ? lang : 'ar';
     
-    const backendURL = 'https://antitheft-backend-production.up.railway.app/';
-    
-    fetch(backendURL + 'api/user/language', {
+    // إرسال اللغة المختارة للخادم
+    fetch('/api/user/language', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -486,12 +265,58 @@ function syncWithBackend(lang) {
     });
 }
 
-// تصدير الدوال الجديدة
-window.loginWithGoogle = loginWithGoogle;
-window.createAccount = createAccount;
-window.verifyEmail = verifyEmail;
-window.viewMap = viewMap;// دوا
-ل المميزات المحسنة
+// دالة تحميل البيانات من الباك إند
+async function loadBackendData() {
+    try {
+        // تحميل الإحصائيات
+        const response = await fetch('/api/stats');
+        if (response.ok) {
+            const stats = await response.json();
+            updateStatsDisplay(stats);
+        }
+    } catch (error) {
+        console.log('تعذر تحميل البيانات من الخادم:', error);
+        
+        // عرض بيانات تجريبية في حالة فشل الاتصال
+        displayDemoStats();
+    }
+}
+
+// دالة تحديث عرض الإحصائيات
+function updateStatsDisplay(stats) {
+    if (!stats) return;
+
+    // تحديث عدد الأجهزة المحمية
+    const devicesElement = document.getElementById('protected-devices');
+    if (devicesElement && stats.protectedDevices) {
+        devicesElement.textContent = stats.protectedDevices.toLocaleString();
+    }
+
+    // تحديث عدد التنبيهات
+    const alertsElement = document.getElementById('active-alerts');
+    if (alertsElement && stats.activeAlerts !== undefined) {
+        alertsElement.textContent = stats.activeAlerts.toLocaleString();
+    }
+
+    // تحديث معدل الاستجابة
+    const responseElement = document.getElementById('response-time');
+    if (responseElement && stats.averageResponseTime) {
+        responseElement.textContent = stats.averageResponseTime + 'ms';
+    }
+}
+
+// دالة عرض بيانات تجريبية
+function displayDemoStats() {
+    const demoStats = {
+        protectedDevices: 1247,
+        activeAlerts: 3,
+        averageResponseTime: 150
+    };
+    
+    updateStatsDisplay(demoStats);
+}
+
+// دوال المميزات
 function loginWithGoogle() {
     const currentLang = localStorage.getItem('selectedLanguage') || 'ar';
     const messages = {
@@ -507,8 +332,7 @@ function loginWithGoogle() {
     updateAuthButtons();
     
     setTimeout(() => {
-        const backendURL = 'https://antitheft-backend-production.up.railway.app/';
-        window.open(backendURL + `auth/google?lang=${currentLang}`, '_blank');
+        window.open(`/auth/google?lang=${currentLang}`, '_blank');
     }, 1000);
 }
 
@@ -527,8 +351,7 @@ function logout() {
     updateAuthButtons();
     
     setTimeout(() => {
-        const backendURL = 'https://antitheft-backend-production.up.railway.app/';
-        window.open(backendURL + `logout?lang=${currentLang}`, '_blank');
+        window.open(`/logout?lang=${currentLang}`, '_blank');
     }, 1000);
 }
 
@@ -559,8 +382,7 @@ function createAccount() {
     showNotification(messages[currentLang]);
     
     setTimeout(() => {
-        const backendURL = 'https://antitheft-backend-production.up.railway.app/';
-        window.open(backendURL + `register?lang=${currentLang}`, '_blank');
+        window.open(`/register?lang=${currentLang}`, '_blank');
     }, 1000);
 }
 
@@ -575,8 +397,7 @@ function verifyEmail() {
     showNotification(messages[currentLang]);
     
     setTimeout(() => {
-        const backendURL = 'https://antitheft-backend-production.up.railway.app/';
-        window.open(backendURL + `verify-email?lang=${currentLang}`, '_blank');
+        window.open(`/verify-email?lang=${currentLang}`, '_blank');
     }, 1000);
 }
 
@@ -591,36 +412,19 @@ function viewMap() {
     showNotification(messages[currentLang]);
     
     setTimeout(() => {
-        const backendURL = 'https://antitheft-backend-production.up.railway.app/';
-        window.open(backendURL + `map?lang=${currentLang}`, '_blank');
+        window.open(`/map?lang=${currentLang}`, '_blank');
     }, 1000);
 }
 
-// تحديث دالة تطبيق الترجمة لتشمل الأزرار الجديدة
-function applyTranslationsEnhanced(lang) {
-    applyTranslations(lang);
-    updateAuthButtons();
-}
-
-// تحديث مستمع الأحداث
-document.addEventListener('DOMContentLoaded', function() {
-    // الكود الموجود...
-    
-    // تحديث أزرار تسجيل الدخول/الخروج
-    updateAuthButtons();
-    
-    // إضافة مستمع لتغيير اللغة
-    const originalApplyTranslations = window.applyTranslations;
-    window.applyTranslations = function(lang) {
-        originalApplyTranslations(lang);
-        updateAuthButtons();
-    };
-});
-
-// تصدير الدوال الجديدة
+// تصدير الدوال للاستخدام العام
+window.getLanguageFromURL = getLanguageFromURL;
+window.updateURL = updateURL;
+window.switchLanguageWithURL = switchLanguageWithURL;
+window.syncWithBackend = syncWithBackend;
 window.loginWithGoogle = loginWithGoogle;
 window.logout = logout;
 window.createAccount = createAccount;
 window.verifyEmail = verifyEmail;
 window.viewMap = viewMap;
 window.updateAuthButtons = updateAuthButtons;
+window.showNotification = showNotification;
