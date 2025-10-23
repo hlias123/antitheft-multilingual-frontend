@@ -2,15 +2,9 @@ const express = require('express');
 const path = require('path');
 require('dotenv').config();
 
-// تحميل Nodemailer بشكل اختياري
-let nodemailer;
-try {
-    nodemailer = require('nodemailer');
-    console.log('✅ Nodemailer loaded successfully');
-} catch (error) {
-    console.log('⚠️ Nodemailer not available, email features will be disabled');
-    nodemailer = null;
-}
+// تعطيل Nodemailer مؤقتاً لضمان عمل النشر
+let nodemailer = null;
+console.log('⚠️ Email features disabled - using screen display instead');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,25 +15,9 @@ app.use(express.static(__dirname));
 // إضافة middleware للـ JSON
 app.use(express.json());
 
-// إعداد خدمة الإيميل (إذا كان Nodemailer متاح)
+// إعداد خدمة الإيميل (معطل مؤقتاً)
 let emailTransporter = null;
-if (nodemailer && process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-    try {
-        emailTransporter = nodemailer.createTransporter({
-            service: 'gmail',
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS
-            }
-        });
-        console.log('✅ Email transporter configured');
-    } catch (error) {
-        console.log('⚠️ Email transporter configuration failed:', error.message);
-        emailTransporter = null;
-    }
-} else {
-    console.log('⚠️ Email not configured - missing Nodemailer or credentials');
-}
+console.log('⚠️ Email service disabled - all codes will be displayed on screen');
 
 // دالة إرسال الإيميل
 async function sendEmail(to, subject, htmlContent) {
