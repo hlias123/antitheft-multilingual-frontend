@@ -93,7 +93,7 @@ app.post('/api/user/language', (req, res) => {
 
 // API لتسجيل الدخول الحقيقي
 app.post('/api/auth/login', (req, res) => {
-    const { email, deviceId } = req.body;
+    const { email, password, deviceId } = req.body;
     
     // التحقق من الإيميل المسموح
     if (email !== 'hlia.hlias123@gmail.com') {
@@ -103,13 +103,22 @@ app.post('/api/auth/login', (req, res) => {
         });
     }
     
+    // التحقق من كلمة المرور (في الإنتاج ستكون مشفرة)
+    if (!password || password.length < 4) {
+        return res.status(401).json({
+            success: false,
+            message: 'كلمة المرور مطلوبة (4 أحرف على الأقل)'
+        });
+    }
+    
     // إنشاء جلسة جديدة
     const sessionId = Date.now().toString();
     userSessions[sessionId] = {
         email: email,
         deviceId: deviceId,
         loginTime: new Date(),
-        isActive: true
+        isActive: true,
+        pinVerified: false
     };
     
     res.json({
@@ -294,7 +303,7 @@ app.get('/dashboard', (req, res) => {
             <div class="pin-section">
                 <h3>🔐 تأكيد هويتك بـ PIN</h3>
                 <p>أدخل PIN المكون من 4 أرقام لتأكيد أنك صاحب التطبيق</p>
-                <input type="password" class="pin-input" id="pinInput" placeholder="****" maxlength="4">
+                <input type="password" class="pin-input" id="pinInput" placeholder="****" maxlength="4" onkeypress="if(event.key==='Enter') verifyPIN()"
                 <br>
                 <button class="btn" onclick="verifyPIN()">تأكيد PIN</button>
                 <div id="pinStatus"></div>
@@ -375,6 +384,11 @@ app.get('/dashboard', (req, res) => {
                     return;
                 }
                 
+                if (!/^\d{4}$/.test(pin)) {
+                    statusDiv.innerHTML = '<p style="color: red;">PIN يجب أن يحتوي على أرقام فقط</p>';
+                    return;
+                }
+                
                 try {
                     const response = await fetch('/api/auth/verify-pin', {
                         method: 'POST',
@@ -388,11 +402,17 @@ app.get('/dashboard', (req, res) => {
                         isPinVerified = true;
                         statusDiv.innerHTML = '<p style="color: green;">✅ تم تأكيد PIN بنجاح!</p>';
                         document.querySelector('.pin-section').style.background = '#e8f5e8';
+                        document.getElementById('pinInput').disabled = true;
+                        document.querySelector('.pin-section button').disabled = true;
+                        document.querySelector('.pin-section button').textContent = 'تم التأكيد ✅';
                     } else {
                         statusDiv.innerHTML = \`<p style="color: red;">❌ \${data.message}</p>\`;
+                        document.getElementById('pinInput').value = '';
+                        document.getElementById('pinInput').focus();
                     }
                 } catch (error) {
                     statusDiv.innerHTML = '<p style="color: red;">خطأ في التحقق من PIN</p>';
+                    console.error('PIN verification error:', error);
                 }
             }
             
@@ -412,7 +432,7 @@ app.get('/dashboard', (req, res) => {
 });
 
 // صفحة تسجيل الدخول الحقيقية
-app.get('/auth/google', (req, res) => {
+app.get('/login', (req, res) => {
     const lang = req.query.lang || 'ar';
     const dir = lang === 'ar' ? 'rtl' : 'ltr';
     
@@ -439,15 +459,20 @@ app.get('/auth/google', (req, res) => {
             <h1>🔐 تسجيل الدخول</h1>
             <p>نظام مكافحة السرقة</p>
             <div>
-                <input type="email" class="email-input" id="emailInput" placeholder="البريد الإلكتروني" value="hlia.hlias123@gmail.com">
+                <input type="email" class="email-input" id="emailInput" placeholder="البريد الإلكتروني" value="hlia.hlias123@gmail.com" readonly>
+                <input type="password" class="email-input" id="passwordInput" placeholder="كلمة المرور" required onkeypress="if(event.key==='Enter') login()">
                 <button class="login-btn" onclick="login()">🔐 تسجيل الدخول</button>
                 <div id="loginStatus"></div>
+                <p style="font-size: 12px; opacity: 0.8; margin-top: 15px;">
+                    💡 أدخل أي كلمة مرور (4 أحرف على الأقل)
+                </p>
             </div>
             <a href="/?lang=${lang}" class="back-btn">العودة للصفحة الرئيسية</a>
         </div>
         <script>
             async function login() {
                 const email = document.getElementById('emailInput').value;
+                const password = document.getElementById('passwordInput').value;
                 const statusDiv = document.getElementById('loginStatus');
                 
                 if (!email) {
@@ -455,12 +480,20 @@ app.get('/auth/google', (req, res) => {
                     return;
                 }
                 
+                if (!password) {
+                    statusDiv.innerHTML = '<p class="error">يرجى إدخال كلمة المرور</p>';
+                    return;
+                }
+                
+                statusDiv.innerHTML = '<p>جاري تسجيل الدخول...</p>';
+                
                 try {
                     const response = await fetch('/api/auth/login', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
-                            email: email, 
+                            email: email,
+                            password: password,
                             deviceId: 'web-' + Date.now() 
                         })
                     });
@@ -486,9 +519,13 @@ app.get('/auth/google', (req, res) => {
     `);
 });
 
-// إزالة الصفحات الوهمية الأخرى
+// إعادة توجيه الروابط القديمة
+app.get('/auth/google', (req, res) => {
+    res.redirect('/login?lang=' + (req.query.lang || 'ar'));
+});
+
 app.get('/register', (req, res) => {
-    res.redirect('/auth/google?lang=' + (req.query.lang || 'ar'));
+    res.redirect('/login?lang=' + (req.query.lang || 'ar'));
 });
 
 app.get('/verify-email', (req, res) => {

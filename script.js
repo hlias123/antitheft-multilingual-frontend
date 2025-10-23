@@ -114,10 +114,9 @@ function setupInteractiveEffects() {
             // إظهار رسالة التوجيه
             showNotification(translations[currentLanguage].redirecting || 'جاري التوجيه...');
             
-            // توجيه للباك إند مع اللغة المحددة
+            // توجيه لصفحة تسجيل الدخول
             setTimeout(() => {
-                const backendURL = 'https://antitheft-backend-production.up.railway.app/';
-                window.location.href = backendURL + `?lang=${currentLanguage}`;
+                window.location.href = `/login?lang=${currentLanguage}`;
             }, 1000);
         });
     }
@@ -320,19 +319,15 @@ function displayDemoStats() {
 function loginWithGoogle() {
     const currentLang = localStorage.getItem('selectedLanguage') || 'ar';
     const messages = {
-        ar: 'جاري التوجيه لتسجيل الدخول بـ Google...',
-        en: 'Redirecting to Google Login...',
-        el: 'Ανακατεύθυνση στη σύνδεση Google...'
+        ar: 'جاري التوجيه لتسجيل الدخول...',
+        en: 'Redirecting to Login...',
+        el: 'Ανακατεύθυνση στη σύνδεση...'
     };
     
     showNotification(messages[currentLang]);
     
-    // تحديث حالة تسجيل الدخول
-    localStorage.setItem('isLoggedIn', 'true');
-    updateAuthButtons();
-    
     setTimeout(() => {
-        window.open(`/auth/google?lang=${currentLang}`, '_blank');
+        window.location.href = `/login?lang=${currentLang}`;
     }, 1000);
 }
 
@@ -382,7 +377,7 @@ function createAccount() {
     showNotification(messages[currentLang]);
     
     setTimeout(() => {
-        window.open(`/register?lang=${currentLang}`, '_blank');
+        window.location.href = `/login?lang=${currentLang}`;
     }, 1000);
 }
 
