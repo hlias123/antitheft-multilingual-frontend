@@ -103,7 +103,7 @@ app.post('/api/user/language', (req, res) => {
 // API لإنشاء حساب جديد
 app.post('/api/auth/register', (req, res) => {
     const { email, password, confirmPassword, pin } = req.body;
-    
+
     // التحقق من البيانات المطلوبة
     if (!email || !password || !confirmPassword || !pin) {
         return res.status(400).json({
@@ -111,7 +111,7 @@ app.post('/api/auth/register', (req, res) => {
             message: 'جميع الحقول مطلوبة'
         });
     }
-    
+
     // التحقق من صحة البريد الإلكتروني
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
@@ -120,7 +120,7 @@ app.post('/api/auth/register', (req, res) => {
             message: 'البريد الإلكتروني غير صحيح'
         });
     }
-    
+
     // التحقق من تطابق كلمات المرور
     if (password !== confirmPassword) {
         return res.status(400).json({
@@ -128,7 +128,7 @@ app.post('/api/auth/register', (req, res) => {
             message: 'كلمات المرور غير متطابقة'
         });
     }
-    
+
     // التحقق من طول كلمة المرور
     if (password.length < 4) {
         return res.status(400).json({
@@ -136,7 +136,7 @@ app.post('/api/auth/register', (req, res) => {
             message: 'كلمة المرور يجب أن تكون 4 أحرف على الأقل'
         });
     }
-    
+
     // التحقق من PIN
     if (!pin || pin.length !== 4 || !/^\d{4}$/.test(pin)) {
         return res.status(400).json({
@@ -144,7 +144,7 @@ app.post('/api/auth/register', (req, res) => {
             message: 'PIN يجب أن يكون 4 أرقام'
         });
     }
-    
+
     // التحقق من وجود المستخدم
     if (registeredUsers[email]) {
         return res.status(409).json({
@@ -152,7 +152,7 @@ app.post('/api/auth/register', (req, res) => {
             message: 'البريد الإلكتروني مسجل مسبقاً'
         });
     }
-    
+
     // إنشاء المستخدم الجديد
     registeredUsers[email] = {
         password: password,
@@ -160,7 +160,7 @@ app.post('/api/auth/register', (req, res) => {
         createdAt: new Date(),
         isActive: true
     };
-    
+
     res.json({
         success: true,
         message: 'تم إنشاء الحساب بنجاح',
@@ -227,7 +227,7 @@ app.post('/api/auth/verify-pin', (req, res) => {
 
     const session = userSessions[sessionId];
     const userEmail = session.email;
-    
+
     // التحقق من وجود المستخدم
     if (!registeredUsers[userEmail]) {
         return res.status(401).json({
@@ -261,14 +261,14 @@ app.post('/api/auth/verify-pin', (req, res) => {
 // API لطلب إعادة تعيين كلمة المرور
 app.post('/api/auth/forgot-password', (req, res) => {
     const { email } = req.body;
-    
+
     if (!email) {
         return res.status(400).json({
             success: false,
             message: 'البريد الإلكتروني مطلوب'
         });
     }
-    
+
     // التحقق من وجود المستخدم
     if (!registeredUsers[email]) {
         return res.status(404).json({
@@ -276,7 +276,7 @@ app.post('/api/auth/forgot-password', (req, res) => {
             message: 'البريد الإلكتروني غير مسجل'
         });
     }
-    
+
     // إنشاء رمز إعادة التعيين (في التطبيق الحقيقي سيتم إرساله بالبريد)
     const resetToken = Math.floor(1000 + Math.random() * 9000).toString();
     passwordResetTokens[email] = {
@@ -284,7 +284,7 @@ app.post('/api/auth/forgot-password', (req, res) => {
         createdAt: new Date(),
         expiresAt: new Date(Date.now() + 15 * 60 * 1000) // 15 دقيقة
     };
-    
+
     res.json({
         success: true,
         message: 'تم إرسال رمز إعادة التعيين',
@@ -296,14 +296,14 @@ app.post('/api/auth/forgot-password', (req, res) => {
 // API لإعادة تعيين كلمة المرور
 app.post('/api/auth/reset-password', (req, res) => {
     const { email, resetToken, newPassword, confirmPassword } = req.body;
-    
+
     if (!email || !resetToken || !newPassword || !confirmPassword) {
         return res.status(400).json({
             success: false,
             message: 'جميع الحقول مطلوبة'
         });
     }
-    
+
     // التحقق من وجود المستخدم
     if (!registeredUsers[email]) {
         return res.status(404).json({
@@ -311,7 +311,7 @@ app.post('/api/auth/reset-password', (req, res) => {
             message: 'البريد الإلكتروني غير مسجل'
         });
     }
-    
+
     // التحقق من رمز إعادة التعيين
     if (!passwordResetTokens[email] || passwordResetTokens[email].token !== resetToken) {
         return res.status(400).json({
@@ -319,7 +319,7 @@ app.post('/api/auth/reset-password', (req, res) => {
             message: 'رمز إعادة التعيين غير صحيح'
         });
     }
-    
+
     // التحقق من انتهاء صلاحية الرمز
     if (new Date() > passwordResetTokens[email].expiresAt) {
         delete passwordResetTokens[email];
@@ -328,7 +328,7 @@ app.post('/api/auth/reset-password', (req, res) => {
             message: 'رمز إعادة التعيين منتهي الصلاحية'
         });
     }
-    
+
     // التحقق من تطابق كلمات المرور
     if (newPassword !== confirmPassword) {
         return res.status(400).json({
@@ -336,7 +336,7 @@ app.post('/api/auth/reset-password', (req, res) => {
             message: 'كلمات المرور غير متطابقة'
         });
     }
-    
+
     // التحقق من طول كلمة المرور
     if (newPassword.length < 4) {
         return res.status(400).json({
@@ -344,11 +344,11 @@ app.post('/api/auth/reset-password', (req, res) => {
             message: 'كلمة المرور يجب أن تكون 4 أحرف على الأقل'
         });
     }
-    
+
     // تحديث كلمة المرور
     registeredUsers[email].password = newPassword;
     delete passwordResetTokens[email];
-    
+
     res.json({
         success: true,
         message: 'تم تغيير كلمة المرور بنجاح'
@@ -472,13 +472,46 @@ app.get('/dashboard', (req, res) => {
             .btn:hover { background: #5a67d8; }
             .map-section { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin: 20px 0; }
             .map-placeholder { height: 300px; background: linear-gradient(45deg, #4caf50, #2196f3); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; }
+            
+            /* رسالة الترحيب والتحذير */
+            .welcome-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 10000; }
+            .welcome-content { background: white; padding: 30px; border-radius: 15px; max-width: 500px; text-align: center; color: #333; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+            .welcome-title { color: #4caf50; font-size: 24px; margin-bottom: 20px; }
+            .welcome-text { line-height: 1.6; margin-bottom: 20px; }
+            .warning-text { background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 8px; margin: 15px 0; color: #856404; }
+            .welcome-btn { background: #4caf50; color: white; padding: 12px 30px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; }
+            .welcome-btn:hover { background: #45a049; }
         </style>
     </head>
     <body>
+        <!-- رسالة الترحيب والتحذير -->
+        <div class="welcome-modal" id="welcomeModal">
+            <div class="welcome-content">
+                <div class="welcome-title">🛡️ أهلاً وسهلاً بك!</div>
+                <div class="welcome-text">
+                    <p><strong>مرحباً بك في نظام مكافحة السرقة المتقدم</strong></p>
+                    <p>هذا البرنامج مصمم لحماية جهازك وممتلكاتك الشخصية من السرقة والضياع.</p>
+                </div>
+                <div class="warning-text">
+                    <strong>⚠️ تحذير قانوني مهم:</strong><br>
+                    نحن غير مسؤولين عن أي استخدام غير قانوني لهذا البرنامج أو أي أنشطة مخالفة للقانون. 
+                    يجب استخدام هذا النظام فقط لحماية ممتلكاتك الشخصية وبما يتوافق مع القوانين المحلية.
+                </div>
+                <div class="welcome-text">
+                    <p>✅ استخدم النظام بمسؤولية</p>
+                    <p>✅ احترم خصوصية الآخرين</p>
+                    <p>✅ اتبع القوانين المحلية</p>
+                </div>
+                <button class="welcome-btn" onclick="closeWelcomeModal()">فهمت، ابدأ الاستخدام</button>
+            </div>
+        </div>
+        
         <div class="header">
             <div class="container">
                 <h1>🛡️ لوحة التحكم - نظام مكافحة السرقة</h1>
-                <p>مرحباً <span id="userEmail">المستخدم</span></p>
+                <p>مرحباً <span id="userEmail">المستخدم</span> 
+                   <button onclick="showWelcomeAgain()" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; margin-left: 10px;">ℹ️ عرض رسالة الترحيب</button>
+                </p>
             </div>
         </div>
         
@@ -634,6 +667,38 @@ app.get('/dashboard', (req, res) => {
             
             // تركيز على حقل PIN عند تحميل الصفحة
             document.getElementById('pinInput').focus();
+            
+            // إظهار رسالة الترحيب إذا لم يتم عرضها من قبل
+            showWelcomeMessage();
+            
+            // دالة إظهار رسالة الترحيب
+            function showWelcomeMessage() {
+                const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
+                if (!hasSeenWelcome) {
+                    document.getElementById('welcomeModal').style.display = 'flex';
+                } else {
+                    document.getElementById('welcomeModal').style.display = 'none';
+                }
+            }
+            
+            // دالة إغلاق رسالة الترحيب
+            function closeWelcomeModal() {
+                document.getElementById('welcomeModal').style.display = 'none';
+                localStorage.setItem('hasSeenWelcome', 'true');
+                // تركيز على حقل PIN بعد إغلاق الرسالة
+                setTimeout(() => {
+                    document.getElementById('pinInput').focus();
+                }, 100);
+            }
+            
+            // دالة إعادة عرض رسالة الترحيب
+            function showWelcomeAgain() {
+                document.getElementById('welcomeModal').style.display = 'flex';
+            }
+            
+            // جعل الدوال متاحة عالمياً
+            window.closeWelcomeModal = closeWelcomeModal;
+            window.showWelcomeAgain = showWelcomeAgain;
         </script>
     </body>
     </html>
@@ -666,7 +731,11 @@ app.get('/login', (req, res) => {
     <body>
         <div class="container">
             <h1>🔐 تسجيل الدخول</h1>
-            <p>نظام مكافحة السرقة</p>
+            <p>نظام مكافحة السرقة المتقدم</p>
+            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin: 15px 0; font-size: 14px;">
+                <p>🛡️ <strong>أهلاً وسهلاً بك!</strong></p>
+                <p>هذا النظام مصمم لحماية جهازك وممتلكاتك</p>
+            </div>
             <div>
                 <input type="email" class="email-input" id="emailInput" placeholder="البريد الإلكتروني" required>
                 <input type="password" class="email-input" id="passwordInput" placeholder="كلمة المرور" required onkeypress="if(event.key==='Enter') login()">
@@ -762,7 +831,12 @@ app.get('/register', (req, res) => {
     <body>
         <div class="container">
             <h1>📝 إنشاء حساب جديد</h1>
-            <p>نظام مكافحة السرقة</p>
+            <p>نظام مكافحة السرقة المتقدم</p>
+            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin: 15px 0; font-size: 14px;">
+                <p>🛡️ <strong>مرحباً بك في نظام الحماية!</strong></p>
+                <p>أنشئ حسابك لحماية جهازك وممتلكاتك بأمان</p>
+                <p style="color: #ffeb3b; font-size: 12px;">⚠️ استخدم النظام بمسؤولية وفقاً للقوانين المحلية</p>
+            </div>
             <div>
                 <input type="email" class="form-input" id="emailInput" placeholder="البريد الإلكتروني" required>
                 <input type="password" class="form-input" id="passwordInput" placeholder="كلمة المرور" required>
