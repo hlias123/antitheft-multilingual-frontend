@@ -1,7 +1,16 @@
 const express = require('express');
 const path = require('path');
-const nodemailer = require('nodemailer');
 require('dotenv').config();
+
+// تحميل Nodemailer بشكل اختياري
+let nodemailer;
+try {
+    nodemailer = require('nodemailer');
+    console.log('✅ Nodemailer loaded successfully');
+} catch (error) {
+    console.log('⚠️ Nodemailer not available, email features will be disabled');
+    nodemailer = null;
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,30 +21,46 @@ app.use(express.static(__dirname));
 // إضافة middleware للـ JSON
 app.use(express.json());
 
-// إعداد خدمة الإيميل
-const emailTransporter = nodemailer.createTransporter({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER || 'your-email@gmail.com', // ضع إيميلك هنا
-        pass: process.env.EMAIL_PASS || 'your-app-password'     // ضع كلمة مرور التطبيق هنا
+// إعداد خدمة الإيميل (إذا كان Nodemailer متاح)
+let emailTransporter = null;
+if (nodemailer && process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+    try {
+        emailTransporter = nodemailer.createTransporter({
+            service: 'gmail',
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS
+            }
+        });
+        console.log('✅ Email transporter configured');
+    } catch (error) {
+        console.log('⚠️ Email transporter configuration failed:', error.message);
+        emailTransporter = null;
     }
-});
+} else {
+    console.log('⚠️ Email not configured - missing Nodemailer or credentials');
+}
 
 // دالة إرسال الإيميل
 async function sendEmail(to, subject, htmlContent) {
+    if (!emailTransporter) {
+        console.log('⚠️ Email not sent - transporter not available');
+        return { success: false, error: 'Email service not configured' };
+    }
+    
     try {
         const mailOptions = {
-            from: process.env.EMAIL_USER || 'your-email@gmail.com',
+            from: process.env.EMAIL_USER,
             to: to,
             subject: subject,
             html: htmlContent
         };
 
         const result = await emailTransporter.sendMail(mailOptions);
-        console.log('Email sent successfully:', result.messageId);
+        console.log('✅ Email sent successfully:', result.messageId);
         return { success: true, messageId: result.messageId };
     } catch (error) {
-        console.error('Error sending email:', error);
+        console.error('❌ Error sending email:', error);
         return { success: false, error: error.message };
     }
 }
