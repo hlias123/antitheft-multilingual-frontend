@@ -445,6 +445,84 @@ app.get('/api/device/:deviceId/location', (req, res) => {
 app.get('/dashboard', (req, res) => {
     const lang = req.query.lang || 'ar';
     const dir = lang === 'ar' ? 'rtl' : 'ltr';
+    
+    // ترجمات لوحة التحكم
+    const translations = {
+        ar: {
+            title: 'لوحة التحكم - نظام مكافحة السرقة',
+            welcome: 'مرحباً',
+            showWelcome: 'عرض رسالة الترحيب',
+            connectedDevices: 'الأجهزة المتصلة',
+            activeAlerts: 'التنبيهات النشطة',
+            responseTime: 'زمن الاستجابة',
+            pinTitle: 'تأكيد هويتك بـ PIN',
+            pinDesc: 'أدخل PIN المكون من 4 أرقام لتأكيد أنك صاحب التطبيق',
+            confirmPin: 'تأكيد PIN',
+            devicesTitle: 'الأجهزة المتصلة',
+            mapTitle: 'الخريطة المباشرة',
+            loadingDevices: 'جاري تحميل الأجهزة...',
+            mapPlaceholder: 'الخريطة ستظهر هنا عند اتصال التطبيق',
+            welcomeTitle: 'أهلاً وسهلاً بك!',
+            welcomeText1: 'مرحباً بك في نظام مكافحة السرقة المتقدم',
+            welcomeText2: 'هذا البرنامج مصمم لحماية جهازك وممتلكاتك الشخصية من السرقة والضياع.',
+            warningTitle: 'تحذير قانوني مهم:',
+            warningText: 'نحن غير مسؤولين عن أي استخدام غير قانوني لهذا البرنامج أو أي أنشطة مخالفة للقانون. يجب استخدام هذا النظام فقط لحماية ممتلكاتك الشخصية وبما يتوافق مع القوانين المحلية.',
+            guideline1: 'استخدم النظام بمسؤولية',
+            guideline2: 'احترم خصوصية الآخرين',
+            guideline3: 'اتبع القوانين المحلية',
+            understood: 'فهمت، ابدأ الاستخدام'
+        },
+        en: {
+            title: 'Dashboard - Anti-Theft System',
+            welcome: 'Welcome',
+            showWelcome: 'Show Welcome Message',
+            connectedDevices: 'Connected Devices',
+            activeAlerts: 'Active Alerts',
+            responseTime: 'Response Time',
+            pinTitle: 'Verify Your Identity with PIN',
+            pinDesc: 'Enter your 4-digit PIN to confirm you are the device owner',
+            confirmPin: 'Confirm PIN',
+            devicesTitle: 'Connected Devices',
+            mapTitle: 'Live Map',
+            loadingDevices: 'Loading devices...',
+            mapPlaceholder: 'Map will appear here when app connects',
+            welcomeTitle: 'Welcome!',
+            welcomeText1: 'Welcome to the Advanced Anti-Theft System',
+            welcomeText2: 'This program is designed to protect your device and personal belongings from theft and loss.',
+            warningTitle: 'Important Legal Warning:',
+            warningText: 'We are not responsible for any illegal use of this program or any activities that violate the law. This system should only be used to protect your personal property and in accordance with local laws.',
+            guideline1: 'Use the system responsibly',
+            guideline2: 'Respect others\' privacy',
+            guideline3: 'Follow local laws',
+            understood: 'Understood, Start Using'
+        },
+        el: {
+            title: 'Πίνακας Ελέγχου - Σύστημα Αντικλοπής',
+            welcome: 'Καλώς ήρθατε',
+            showWelcome: 'Εμφάνιση Μηνύματος Καλωσορίσματος',
+            connectedDevices: 'Συνδεδεμένες Συσκευές',
+            activeAlerts: 'Ενεργές Ειδοποιήσεις',
+            responseTime: 'Χρόνος Απόκρισης',
+            pinTitle: 'Επαλήθευση Ταυτότητας με PIN',
+            pinDesc: 'Εισάγετε το 4ψήφιο PIN σας για επιβεβαίωση ότι είστε ο κάτοχος',
+            confirmPin: 'Επιβεβαίωση PIN',
+            devicesTitle: 'Συνδεδεμένες Συσκευές',
+            mapTitle: 'Ζωντανός Χάρτης',
+            loadingDevices: 'Φόρτωση συσκευών...',
+            mapPlaceholder: 'Ο χάρτης θα εμφανιστεί εδώ όταν συνδεθεί η εφαρμογή',
+            welcomeTitle: 'Καλώς ήρθατε!',
+            welcomeText1: 'Καλώς ήρθατε στο Προηγμένο Σύστημα Αντικλοπής',
+            welcomeText2: 'Αυτό το πρόγραμμα έχει σχεδιαστεί για να προστατεύει τη συσκευή και τα προσωπικά σας αντικείμενα από κλοπή και απώλεια.',
+            warningTitle: 'Σημαντική Νομική Προειδοποίηση:',
+            warningText: 'Δεν είμαστε υπεύθυνοι για οποιαδήποτε παράνομη χρήση αυτού του προγράμματος ή οποιεσδήποτε δραστηριότητες που παραβιάζουν το νόμο. Αυτό το σύστημα πρέπει να χρησιμοποιείται μόνο για την προστασία της προσωπικής σας περιουσίας και σύμφωνα με τους τοπικούς νόμους.',
+            guideline1: 'Χρησιμοποιήστε το σύστημα υπεύθυνα',
+            guideline2: 'Σεβαστείτε την ιδιωτικότητα των άλλων',
+            guideline3: 'Ακολουθήστε τους τοπικούς νόμους',
+            understood: 'Κατανοητό, Έναρξη Χρήσης'
+        }
+    };
+    
+    const t = translations[lang] || translations.ar;
 
     res.send(`
     <!DOCTYPE html>
@@ -452,7 +530,7 @@ app.get('/dashboard', (req, res) => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>لوحة التحكم - نظام مكافحة السرقة</title>
+        <title>${t.title}</title>
         <style>
             body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
             .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; }
@@ -487,31 +565,37 @@ app.get('/dashboard', (req, res) => {
         <!-- رسالة الترحيب والتحذير -->
         <div class="welcome-modal" id="welcomeModal">
             <div class="welcome-content">
-                <div class="welcome-title">🛡️ أهلاً وسهلاً بك!</div>
+                <div class="welcome-title">🛡️ ${t.welcomeTitle}</div>
                 <div class="welcome-text">
-                    <p><strong>مرحباً بك في نظام مكافحة السرقة المتقدم</strong></p>
-                    <p>هذا البرنامج مصمم لحماية جهازك وممتلكاتك الشخصية من السرقة والضياع.</p>
+                    <p><strong>${t.welcomeText1}</strong></p>
+                    <p>${t.welcomeText2}</p>
                 </div>
                 <div class="warning-text">
-                    <strong>⚠️ تحذير قانوني مهم:</strong><br>
-                    نحن غير مسؤولين عن أي استخدام غير قانوني لهذا البرنامج أو أي أنشطة مخالفة للقانون. 
-                    يجب استخدام هذا النظام فقط لحماية ممتلكاتك الشخصية وبما يتوافق مع القوانين المحلية.
+                    <strong>⚠️ ${t.warningTitle}</strong><br>
+                    ${t.warningText}
                 </div>
                 <div class="welcome-text">
-                    <p>✅ استخدم النظام بمسؤولية</p>
-                    <p>✅ احترم خصوصية الآخرين</p>
-                    <p>✅ اتبع القوانين المحلية</p>
+                    <p>✅ ${t.guideline1}</p>
+                    <p>✅ ${t.guideline2}</p>
+                    <p>✅ ${t.guideline3}</p>
                 </div>
-                <button class="welcome-btn" onclick="closeWelcomeModal()">فهمت، ابدأ الاستخدام</button>
+                <button class="welcome-btn" onclick="closeWelcomeModal()">${t.understood}</button>
             </div>
         </div>
         
         <div class="header">
             <div class="container">
-                <h1>🛡️ لوحة التحكم - نظام مكافحة السرقة</h1>
-                <p>مرحباً <span id="userEmail">المستخدم</span> 
-                   <button onclick="showWelcomeAgain()" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; margin-left: 10px;">ℹ️ عرض رسالة الترحيب</button>
+                <h1>🛡️ ${t.title}</h1>
+                <p>${t.welcome} <span id="userEmail">المستخدم</span> 
+                   <button onclick="showWelcomeAgain()" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; margin-left: 10px;">ℹ️ ${t.showWelcome}</button>
                 </p>
+                <div style="margin-top: 10px;">
+                    <select onchange="changeLanguage(this.value)" style="padding: 5px 10px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.2); color: white;">
+                        <option value="ar" ${lang === 'ar' ? 'selected' : ''}>العربية</option>
+                        <option value="en" ${lang === 'en' ? 'selected' : ''}>English</option>
+                        <option value="el" ${lang === 'el' ? 'selected' : ''}>Ελληνικά</option>
+                    </select>
+                </div>
             </div>
         </div>
         
@@ -520,43 +604,43 @@ app.get('/dashboard', (req, res) => {
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-number" id="deviceCount">0</div>
-                    <div>الأجهزة المتصلة</div>
+                    <div>${t.connectedDevices}</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-number" id="alertCount">0</div>
-                    <div>التنبيهات النشطة</div>
+                    <div>${t.activeAlerts}</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-number">150ms</div>
-                    <div>زمن الاستجابة</div>
+                    <div>${t.responseTime}</div>
                 </div>
             </div>
             
             <!-- تأكيد PIN -->
             <div class="pin-section">
-                <h3>🔐 تأكيد هويتك بـ PIN</h3>
-                <p>أدخل PIN المكون من 4 أرقام لتأكيد أنك صاحب التطبيق</p>
+                <h3>🔐 ${t.pinTitle}</h3>
+                <p>${t.pinDesc}</p>
                 <input type="password" class="pin-input" id="pinInput" placeholder="****" maxlength="4" onkeypress="if(event.key==='Enter') verifyPIN()" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                 <br>
-                <button class="btn" onclick="verifyPIN()">تأكيد PIN</button>
+                <button class="btn" onclick="verifyPIN()">${t.confirmPin}</button>
                 <div id="pinStatus"></div>
             </div>
             
             <!-- الأجهزة المتصلة -->
             <div class="devices-section">
-                <h3>📱 الأجهزة المتصلة</h3>
+                <h3>📱 ${t.devicesTitle}</h3>
                 <div id="devicesList">
-                    <p>جاري تحميل الأجهزة...</p>
+                    <p>${t.loadingDevices}</p>
                 </div>
             </div>
             
             <!-- الخريطة الحقيقية -->
             <div class="map-section">
-                <h3>🗺️ الخريطة المباشرة</h3>
+                <h3>🗺️ ${t.mapTitle}</h3>
                 <div class="map-placeholder" id="mapContainer">
                     <div>
                         <div style="font-size: 48px; margin-bottom: 10px;">📍</div>
-                        <div>الخريطة ستظهر هنا عند اتصال التطبيق</div>
+                        <div>${t.mapPlaceholder}</div>
                     </div>
                 </div>
             </div>
@@ -618,6 +702,16 @@ app.get('/dashboard', (req, res) => {
                 const pin = document.getElementById('pinInput').value;
                 const statusDiv = document.getElementById('pinStatus');
                 
+                console.log('Verifying PIN:', pin, 'SessionId:', sessionId);
+                
+                if (!sessionId) {
+                    statusDiv.innerHTML = '<p style="color: red;">خطأ: لا توجد جلسة نشطة. يرجى تسجيل الدخول مرة أخرى</p>';
+                    setTimeout(() => {
+                        window.location.href = '/login?lang=ar';
+                    }, 2000);
+                    return;
+                }
+                
                 if (!pin || pin.length !== 4) {
                     statusDiv.innerHTML = '<p style="color: red;">يرجى إدخال PIN مكون من 4 أرقام</p>';
                     return;
@@ -628,6 +722,8 @@ app.get('/dashboard', (req, res) => {
                     return;
                 }
                 
+                statusDiv.innerHTML = '<p style="color: blue;">جاري التحقق من PIN...</p>';
+                
                 try {
                     const response = await fetch('/api/auth/verify-pin', {
                         method: 'POST',
@@ -635,7 +731,9 @@ app.get('/dashboard', (req, res) => {
                         body: JSON.stringify({ sessionId: sessionId, pin: pin })
                     });
                     
+                    console.log('Response status:', response.status);
                     const data = await response.json();
+                    console.log('Response data:', data);
                     
                     if (data.success) {
                         isPinVerified = true;
@@ -696,9 +794,17 @@ app.get('/dashboard', (req, res) => {
                 document.getElementById('welcomeModal').style.display = 'flex';
             }
             
+            // دالة تغيير اللغة
+            function changeLanguage(newLang) {
+                const currentUrl = new URL(window.location);
+                currentUrl.searchParams.set('lang', newLang);
+                window.location.href = currentUrl.toString();
+            }
+            
             // جعل الدوال متاحة عالمياً
             window.closeWelcomeModal = closeWelcomeModal;
             window.showWelcomeAgain = showWelcomeAgain;
+            window.changeLanguage = changeLanguage;
         </script>
     </body>
     </html>
@@ -709,6 +815,54 @@ app.get('/dashboard', (req, res) => {
 app.get('/login', (req, res) => {
     const lang = req.query.lang || 'ar';
     const dir = lang === 'ar' ? 'rtl' : 'ltr';
+    
+    // ترجمات صفحة تسجيل الدخول
+    const translations = {
+        ar: {
+            title: 'تسجيل الدخول - نظام مكافحة السرقة',
+            loginTitle: 'تسجيل الدخول',
+            systemName: 'نظام مكافحة السرقة المتقدم',
+            welcomeMsg: 'أهلاً وسهلاً بك!',
+            welcomeDesc: 'هذا النظام مصمم لحماية جهازك وممتلكاتك',
+            emailPlaceholder: 'البريد الإلكتروني',
+            passwordPlaceholder: 'كلمة المرور',
+            loginBtn: 'تسجيل الدخول',
+            forgotPassword: 'نسيت كلمة المرور؟',
+            createAccount: 'إنشاء حساب جديد',
+            demoAccount: 'الحساب التجريبي: hlia.hlias123@gmail.com / demo123',
+            backHome: 'العودة للصفحة الرئيسية'
+        },
+        en: {
+            title: 'Login - Anti-Theft System',
+            loginTitle: 'Login',
+            systemName: 'Advanced Anti-Theft System',
+            welcomeMsg: 'Welcome!',
+            welcomeDesc: 'This system is designed to protect your device and belongings',
+            emailPlaceholder: 'Email Address',
+            passwordPlaceholder: 'Password',
+            loginBtn: 'Login',
+            forgotPassword: 'Forgot Password?',
+            createAccount: 'Create New Account',
+            demoAccount: 'Demo Account: hlia.hlias123@gmail.com / demo123',
+            backHome: 'Back to Home'
+        },
+        el: {
+            title: 'Σύνδεση - Σύστημα Αντικλοπής',
+            loginTitle: 'Σύνδεση',
+            systemName: 'Προηγμένο Σύστημα Αντικλοπής',
+            welcomeMsg: 'Καλώς ήρθατε!',
+            welcomeDesc: 'Αυτό το σύστημα έχει σχεδιαστεί για να προστατεύει τη συσκευή και τα αντικείμενά σας',
+            emailPlaceholder: 'Διεύθυνση Email',
+            passwordPlaceholder: 'Κωδικός Πρόσβασης',
+            loginBtn: 'Σύνδεση',
+            forgotPassword: 'Ξεχάσατε τον Κωδικό;',
+            createAccount: 'Δημιουργία Νέου Λογαριασμού',
+            demoAccount: 'Demo Λογαριασμός: hlia.hlias123@gmail.com / demo123',
+            backHome: 'Επιστροφή στην Αρχική'
+        }
+    };
+    
+    const t = translations[lang] || translations.ar;
 
     res.send(`
     <!DOCTYPE html>
@@ -716,7 +870,7 @@ app.get('/login', (req, res) => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>تسجيل الدخول - نظام مكافحة السرقة</title>
+        <title>${t.title}</title>
         <style>
             body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
             .container { background: rgba(255,255,255,0.1); padding: 40px; border-radius: 20px; text-align: center; backdrop-filter: blur(10px); max-width: 400px; }
@@ -730,27 +884,27 @@ app.get('/login', (req, res) => {
     </head>
     <body>
         <div class="container">
-            <h1>🔐 تسجيل الدخول</h1>
-            <p>نظام مكافحة السرقة المتقدم</p>
+            <h1>🔐 ${t.loginTitle}</h1>
+            <p>${t.systemName}</p>
             <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin: 15px 0; font-size: 14px;">
-                <p>🛡️ <strong>أهلاً وسهلاً بك!</strong></p>
-                <p>هذا النظام مصمم لحماية جهازك وممتلكاتك</p>
+                <p>🛡️ <strong>${t.welcomeMsg}</strong></p>
+                <p>${t.welcomeDesc}</p>
             </div>
             <div>
-                <input type="email" class="email-input" id="emailInput" placeholder="البريد الإلكتروني" required>
-                <input type="password" class="email-input" id="passwordInput" placeholder="كلمة المرور" required onkeypress="if(event.key==='Enter') login()">
-                <button class="login-btn" onclick="login()">🔐 تسجيل الدخول</button>
+                <input type="email" class="email-input" id="emailInput" placeholder="${t.emailPlaceholder}" required>
+                <input type="password" class="email-input" id="passwordInput" placeholder="${t.passwordPlaceholder}" required onkeypress="if(event.key==='Enter') login()">
+                <button class="login-btn" onclick="login()">🔐 ${t.loginBtn}</button>
                 <div id="loginStatus"></div>
                 <div style="margin-top: 20px;">
-                    <a href="/forgot-password?lang=${lang}" style="color: #ffeb3b; text-decoration: none; margin: 10px;">🔑 نسيت كلمة المرور؟</a>
+                    <a href="/forgot-password?lang=${lang}" style="color: #ffeb3b; text-decoration: none; margin: 10px;">🔑 ${t.forgotPassword}</a>
                     <br>
-                    <a href="/register?lang=${lang}" style="color: #4caf50; text-decoration: none; margin: 10px;">📝 إنشاء حساب جديد</a>
+                    <a href="/register?lang=${lang}" style="color: #4caf50; text-decoration: none; margin: 10px;">📝 ${t.createAccount}</a>
                 </div>
                 <p style="font-size: 12px; opacity: 0.8; margin-top: 15px;">
-                    💡 الحساب التجريبي: hlia.hlias123@gmail.com / demo123
+                    💡 ${t.demoAccount}
                 </p>
             </div>
-            <a href="/?lang=${lang}" class="back-btn">العودة للصفحة الرئيسية</a>
+            <a href="/?lang=${lang}" class="back-btn">${t.backHome}</a>
         </div>
         <script>
             async function login() {
